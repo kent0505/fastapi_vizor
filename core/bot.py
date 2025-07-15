@@ -1,7 +1,7 @@
 from aiogram         import Bot, Dispatcher, Router
 from aiogram.filters import CommandStart
 from aiogram.types   import Message
-from settings        import settings
+from core.settings   import settings
 
 import logging
 import asyncio
@@ -21,3 +21,15 @@ async def start_bot():
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     await message.answer("Hello")
+
+# @asynccontextmanager
+# async def lifespan(app: FastAPI):
+#     # startup
+#     load_dotenv()
+#     # logging.basicConfig(level=logging.INFO)
+#     # bot_task = asyncio.create_task(start_bot())
+#     logging.info("STARTUP")
+#     yield
+#     # shutdown
+#     logging.info("SHUTDOWN")
+#     # bot_task.cancel()

@@ -1,0 +1,19 @@
+body {
+    font-family: monospace;
+    background-color: #f4f4f4;
+    color: #333333;
+}
+
+table {
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 10px;
+    border: 1px solid #333333;
+}
+
+th {
+    background-color: #333333;
+    color: #ffffff;
+}

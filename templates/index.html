@@ -3,9 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <title>Home</title>
-    <link rel="icon" type="image/png" href="/templates/icon.png" />
+    <link rel="icon" type="image/png" href="/static/icon.png" />
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    
+    <h2>Users</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Age</th>
+                <th>Code</th>
+                <th>Date</th>
+                <!-- <th>Action</th> -->
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.phone }}</td>
+                    <td>{{ user.age }}</td>
+                    <td>{{ user.code }}</td>
+                    <td>{{ user.date }}</td>
+                    <!-- <td>
+                        <form method="delete" action="/api/v1/user/{{ user.id }}" onsubmit="return confirm('Delete this user?')">
+                            <button type="submit">Delete</button>
+                        </form>
+                    </td> -->
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Restaurants</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>title</th>
+                <th>type</th>
+                <th>photo</th>
+                <th>phone</th>
+                <th>instagram</th>
+                <th>address</th>
+                <th>latlon</th>
+                <th>hours</th>
+                <th>position</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for restaurant in restaurants %}
+                <tr>
+                    <td>{{ restaurant.id }}</td>
+                    <td>{{ restaurant.title }}</td>
+                    <td>{{ restaurant.type }}</td>
+                    <td>{{ restaurant.photo }}</td>
+                    <td>{{ restaurant.phone }}</td>
+                    <td>{{ restaurant.instagram }}</td>
+                    <td>{{ restaurant.address }}</td>
+                    <td>{{ restaurant.latlon }}</td>
+                    <td>{{ restaurant.hours }}</td>
+                    <td>{{ restaurant.position }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
