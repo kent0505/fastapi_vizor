@@ -1,10 +1,9 @@
 from fastapi       import APIRouter, HTTPException, Depends
 from pydantic      import BaseModel
-from core.security import JWTBearer
+from core.security import JWTBearer, Roles
 from core.db       import Tables, get_db 
-from core.settings import settings
 
-router = APIRouter(dependencies=[Depends(JWTBearer())])
+router = APIRouter()
 
 class RestaurantModel(BaseModel):
     title:     str
@@ -17,14 +16,14 @@ class RestaurantModel(BaseModel):
     hours:     str
     position:  int
 
-@router.get("/",dependencies=[])
+@router.get("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
 async def get_restaurants():
     async with get_db() as db:
         cursor = await db.execute(f"SELECT * FROM {Tables.restaurants}")
         rows = await cursor.fetchall()
         return {Tables.restaurants: [dict(row) for row in rows]}
 
-@router.post("/")
+@router.post("/", dependencies=[Depends(JWTBearer())])
 async def add_restaurant(body: RestaurantModel):
     async with get_db() as db:
         await db.execute(f"""
@@ -44,13 +43,13 @@ async def add_restaurant(body: RestaurantModel):
         await db.commit()
         return {"message": "restaurant added"}
 
-@router.put("/{id}")
+@router.put("/", dependencies=[Depends(JWTBearer())])
 async def edit_restaurant(id: int, body: RestaurantModel):
     async with get_db() as db:
         cursor = await db.execute(f"SELECT * FROM {Tables.restaurants} WHERE id = ?", (id,))
         row = await cursor.fetchone()
         if not row:
-            raise HTTPException(404, "restaurant not found")
+            raise HTTPException(status_code=404, detail="restaurant not found")
 
         await db.execute(f"""
         UPDATE {Tables.restaurants} SET 
@@ -78,13 +77,13 @@ async def edit_restaurant(id: int, body: RestaurantModel):
         await db.commit()
         return {"message": "restaurant updated"}
 
-@router.delete("/{id}")
+@router.delete("/", dependencies=[Depends(JWTBearer())])
 async def delete_restaurant(id: int):
     async with get_db() as db:
         cursor = await db.execute(f"SELECT * FROM {Tables.restaurants} WHERE id = ?", (id,))
         row = await cursor.fetchone()
         if not row:
-            raise HTTPException(404, "Restaurant not found")
+            raise HTTPException(status_code=404, detail="restaurant not found")
 
         await db.execute(f"DELETE FROM {Tables.restaurants} WHERE id = ?", (id,))
         await db.commit()

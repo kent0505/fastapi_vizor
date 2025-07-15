@@ -1,6 +1,6 @@
 from contextlib  import asynccontextmanager
-from typing      import AsyncGenerator
 from dataclasses import dataclass
+from typing      import AsyncGenerator
 
 import aiosqlite
 
@@ -47,7 +47,7 @@ class Sql:
             address   {_text},
             latlon    {_text},
             hours     {_text},
-            position  {_int} DEFAULT 0
+            position  {_int}
         );
     """
     photos: str = f"""

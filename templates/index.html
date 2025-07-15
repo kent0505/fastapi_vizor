@@ -11,13 +11,11 @@
     <table>
         <thead>
             <tr>
-                <th>ID</th>
+                <th>id</th>
                 <th>Name</th>
                 <th>Phone</th>
                 <th>Age</th>
-                <th>Code</th>
-                <th>Date</th>
-                <!-- <th>Action</th> -->
+                <th>Photo</th>
             </tr>
         </thead>
         <tbody>
@@ -27,13 +25,7 @@
                     <td>{{ user.name }}</td>
                     <td>{{ user.phone }}</td>
                     <td>{{ user.age }}</td>
-                    <td>{{ user.code }}</td>
-                    <td>{{ user.date }}</td>
-                    <!-- <td>
-                        <form method="delete" action="/api/v1/user/{{ user.id }}" onsubmit="return confirm('Delete this user?')">
-                            <button type="submit">Delete</button>
-                        </form>
-                    </td> -->
+                    <td>{{ user.photo }}</td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -43,7 +35,7 @@
     <table>
         <thead>
             <tr>
-                <th>ID</th>
+                <th>id</th>
                 <th>title</th>
                 <th>type</th>
                 <th>photo</th>
