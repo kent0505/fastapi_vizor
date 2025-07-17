@@ -6,3 +6,5 @@ python-multipart
 python-dotenv
 jinja2
 aiogram
+boto3
+boto3-stubs

@@ -21,7 +21,8 @@ async def get_restaurants():
     async with get_db() as db:
         cursor = await db.execute(f"SELECT * FROM {Tables.restaurants}")
         rows = await cursor.fetchall()
-        return {Tables.restaurants: [dict(row) for row in rows]}
+
+        return {"restaurants": [dict(row) for row in rows]}
 
 @router.post("/", dependencies=[Depends(JWTBearer())])
 async def add_restaurant(body: RestaurantModel):
@@ -38,9 +39,10 @@ async def add_restaurant(body: RestaurantModel):
             body.address,
             body.latlon,
             body.hours,
-            body.position,
+            body.position
         ))
         await db.commit()
+
         return {"message": "restaurant added"}
 
 @router.put("/", dependencies=[Depends(JWTBearer())])
@@ -75,6 +77,7 @@ async def edit_restaurant(id: int, body: RestaurantModel):
             id
         ))
         await db.commit()
+
         return {"message": "restaurant updated"}
 
 @router.delete("/", dependencies=[Depends(JWTBearer())])
@@ -87,4 +90,5 @@ async def delete_restaurant(id: int):
 
         await db.execute(f"DELETE FROM {Tables.restaurants} WHERE id = ?", (id,))
         await db.commit()
+
         return {"message": "restaurant deleted"}

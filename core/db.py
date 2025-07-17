@@ -13,15 +13,15 @@ async def get_db() -> AsyncGenerator[aiosqlite.Connection, None]:
     finally:
         await db.close()
 
-_id:   str = "id INTEGER PRIMARY KEY"
-_text: str = "TEXT NOT NULL"
-_int:  str = "INTEGER NOT NULL"
+ID      = "id INTEGER PRIMARY KEY"
+TEXT    = "TEXT NOT NULL"
+INTEGER = "INTEGER NOT NULL"
 
 @dataclass
 class Tables:
     users:       str = "users"
     restaurants: str = "restaurants"
-    photos:      str = "photos"
+    panoramas:   str = "panoramas"
     hotspots:    str = "hotspots"
     reserves:    str = "reserves"
 
@@ -29,51 +29,51 @@ class Tables:
 class Sql:
     users: str = f"""
         CREATE TABLE IF NOT EXISTS {Tables.users} (
-            {_id},
-            name  {_text},
-            phone {_text},
-            age   {_int},
-            photo {_text} DEFAULT ''
+            {ID},
+            name  {TEXT},
+            phone {TEXT},
+            age   {INTEGER},
+            photo {TEXT} DEFAULT ''
         );
     """
     restaurants: str = f"""
         CREATE TABLE IF NOT EXISTS {Tables.restaurants} (
-            {_id},
-            title     {_text},
-            type      {_text},
-            photo     {_text},
-            phone     {_text},
-            instagram {_text},
-            address   {_text},
-            latlon    {_text},
-            hours     {_text},
-            position  {_int}
+            {ID},
+            title     {TEXT},
+            type      {TEXT},
+            photo     {TEXT} DEFAULT '',
+            phone     {TEXT},
+            instagram {TEXT},
+            address   {TEXT},
+            latlon    {TEXT},
+            hours     {TEXT},
+            position  {INTEGER}
         );
     """
-    photos: str = f"""
-        CREATE TABLE IF NOT EXISTS {Tables.photos} (
-            {_id},
-            url {_text},
-            rid {_int}
+    panoramas: str = f"""
+        CREATE TABLE IF NOT EXISTS {Tables.panoramas} (
+            {ID},
+            url {TEXT},
+            rid {INTEGER}
         );
     """
     hotspots: str = f"""
         CREATE TABLE IF NOT EXISTS {Tables.hotspots} (
-            {_id},
-            number {_int},
-            latlon {_text},
-            pid    {_int}
+            {ID},
+            number {INTEGER},
+            latlon {TEXT},
+            pid    {INTEGER}
         );
     """
     reserves: str = f"""
         CREATE TABLE IF NOT EXISTS {Tables.reserves} (
-            {_id},
-            uid    {_int},
-            rid    {_int},
-            number {_int},
-            time   {_int},
-            date   {_int},
-            status {_text},
-            note   {_text}
+            {ID},
+            uid    {INTEGER},
+            rid    {INTEGER},
+            number {INTEGER},
+            time   {INTEGER},
+            date   {INTEGER},
+            status {TEXT},
+            note   {TEXT}
         );
     """
