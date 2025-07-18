@@ -1,130 +1,104 @@
-from fastapi       import APIRouter, HTTPException, UploadFile, File, Depends
-from pydantic      import BaseModel
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer, Roles, signJWT
-from core.db       import Tables, get_db
-from core.utils    import get_timestamp
+from core.schemas import User
+from core.utils import get_timestamp, get_format
 from core.settings import settings, s3
+from core.db import (
+    db_get_user_by_id, 
+    db_get_user_by_phone,
+    db_add_user,
+    db_update_user,
+    db_update_user_photo,
+    db_delete_user,
+)
 
 router = APIRouter()
 
-class LoginModel(BaseModel):
-    phone:    str
-    password: str
-
-class UserModel(BaseModel):
-    name:  str
-    phone: str
-    age:   int
-
 @router.post("/login")
-async def login(body: LoginModel):
-    async with get_db() as db:
-        cursor = await db.execute(f"SELECT * FROM {Tables.users} WHERE phone = ?", (body.phone,))
-        row = await cursor.fetchone()
+async def login(phone: str, password: str):
+    row = await db_get_user_by_phone(phone)
+    if not row:
+        raise HTTPException(404, "phone number does not exist")
 
-        if not row:
-            raise HTTPException(404, "phone number does not exist")
-        
-        now = get_timestamp()
-        role = Roles.user
-        exp = now + settings.year_seconds
-        if body.password == settings.password:
-            role = Roles.admin
-            exp = now + settings.day_seconds
+    now = get_timestamp()
+    role = Roles.user
+    exp = now + settings.year_seconds
+    if password == settings.password:
+        role = Roles.admin
+        exp = now + settings.day_seconds
 
-        access_token: str = signJWT(row["id"], role, exp)
+    access_token: str = signJWT(row.id, role, exp)
 
-        return {
-            "access_token": access_token,
-            "role": role,
-        }
+    return {
+        "access_token": access_token,
+        "role": role,
+    }
 
 @router.post("/register")
-async def register(body: UserModel):
-    async with get_db() as db:
-        cursor = await db.execute(f"SELECT id FROM {Tables.users} WHERE phone = ?", (body.phone,))
-        row = await cursor.fetchone()
-        if row:
-            raise HTTPException(400, "user already exists")
+async def register(body: User):
+    row = await db_get_user_by_phone(body.phone)
+    if row:
+        raise HTTPException(404, "user already exists")
 
-        await db.execute(
-            f"INSERT INTO {Tables.users} (name, phone, age) VALUES (?, ?, ?)", 
-            (body.name, body.phone, body.age)
-        )
-        await db.commit()
-        return {"message": "user registered"}
+    await db_add_user(body)
+
+    return {"message": "user registered"}
 
 @router.put("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
-async def edit_user(id: int, body: UserModel):
-    async with get_db() as db:
-        cursor = await db.execute(f"SELECT * FROM {Tables.users} WHERE id = ?", (id,))
-        row = await cursor.fetchone()
-        if not row:
-            raise HTTPException(404, "user not found")
-
-        if row["phone"] != body.phone:
-            cursor = await db.execute(f"SELECT * FROM {Tables.users} WHERE phone = ?", (body.phone,))
-            row = await cursor.fetchone()
-            if row:
-                raise HTTPException(404, "phone number already exists")
-
-        await db.execute(f"""
-        UPDATE {Tables.users} SET 
-            name = ?, 
-            phone = ?, 
-            age = ?
-        WHERE id = ?""", (
-            body.name,
-            body.phone,
-            body.age,
-            id
-        ))
-        await db.commit()
-
-        return {"message": "user updated"}
+async def edit_user(body: User):
+    row = await db_get_user_by_id(body.id)
+    if not row:
+        raise HTTPException(404, "user not found")
     
-@router.put("/photo", dependencies=[Depends(JWTBearer(role=Roles.user))])
-async def edit_user_photo(id: int, file: UploadFile = File(...)):
-    async with get_db() as db:
-        cursor = await db.execute(f"SELECT * FROM {Tables.users} WHERE id = ?", (id,))
-        row = await cursor.fetchone()
-        if not row:
-            raise HTTPException(404, "user not found")
+    if row.phone != body.phone:
+        row = await db_get_user_by_phone(body.phone)
+        if row:
+            raise HTTPException(404, "phone number already exists")
 
-        format = str(file.filename).split('.')[-1]
-        if format not in settings.image_formats:
-            raise HTTPException(400, 'file error')
+    await db_update_user(body)
 
-        key = f"users/{id}.{format}"
-        url = f"{settings.endpoint_url}/{settings.Bucket}/{key}"
-
-        await s3.delete_object(Bucket=settings.Bucket, Key=f"users/{id}.png")
-        await s3.delete_object(Bucket=settings.Bucket, Key=f"users/{id}.jpg")
-        await s3.delete_object(Bucket=settings.Bucket, Key=f"users/{id}.jpeg")
-
-        await s3.put_object(
-            Bucket=settings.Bucket,
-            Key=key,
-            Body=await file.read(),
-            ContentType=file.content_type,
-        )
-
-        await db.execute(
-            f"UPDATE {Tables.users} SET photo = ? WHERE id = ?",
-            (url, id),
-        )
-        await db.commit()
-
-        return {"message": "user photo updated"}
+    return {"message": "user updated"}
 
 @router.delete("/", dependencies=[Depends(JWTBearer())])
 async def delete_user(id: int):
-    async with get_db() as db:        
-        await s3.delete_object(Bucket=settings.Bucket, Key=f"users/{id}.png")
-        await s3.delete_object(Bucket=settings.Bucket, Key=f"users/{id}.jpg")
-        await s3.delete_object(Bucket=settings.Bucket, Key=f"users/{id}.jpeg")
+    row = await db_get_user_by_id(id)
+    if not row:
+        raise HTTPException(404, "user not found")
+    
+    s3.delete_object(
+        Bucket=settings.bucket, 
+        Key=f"users/{id}.{get_format(row.photo)}",
+    )
 
-        await db.execute(f"DELETE FROM {Tables.users} WHERE id = ?", (id,))
-        await db.commit()
+    await db_delete_user(id)
 
-        return {"message": "user deleted"}
+    return {"message": "user deleted"}
+
+@router.put("/photo", dependencies=[Depends(JWTBearer(role=Roles.user))])
+async def edit_user_photo(id: int, file: UploadFile = File(...)):
+    row = await db_get_user_by_id(id)
+    if not row:
+        raise HTTPException(404, "user not found")
+    
+    format = get_format(str(file.filename))
+    if format not in settings.image_formats:
+        raise HTTPException(400, 'file error')
+
+    key = f"users/{id}.{format}"
+    url = f"{settings.endpoint_url}/{settings.bucket}/{key}"
+
+    s3.delete_object(
+        Bucket=settings.bucket, 
+        Key=f"users/{id}.{get_format(row.photo)}",
+    )
+
+    s3.put_object(
+        Bucket=settings.bucket,
+        Key=key,
+        Body=await file.read(),
+        ContentType=file.content_type,
+    )
+
+    await db_update_user_photo(url, id)
+
+    return {"message": "user photo updated"}

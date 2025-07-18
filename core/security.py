@@ -1,60 +1,58 @@
-from fastapi          import Request, HTTPException
+from fastapi import Request, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jwt              import ExpiredSignatureError, InvalidTokenError
-from core.settings    import settings
-from dataclasses      import dataclass
+from jwt import ExpiredSignatureError, InvalidTokenError
+from core.settings import settings
+from dataclasses import dataclass
 
 import jwt
 
 @dataclass
 class Roles:
     admin: str = "admin"
-    user:  str = "user"
+    user: str = "user"
 
 def signJWT(
-    id:   int, 
+    id: int, 
     role: str, 
-    exp:  int,
+    exp: int,
 ) -> str:
     return jwt.encode(
         {
-            "id":   id,
+            "id": id,
             "role": role,
-            "exp":  exp,
+            "exp": exp,
         },
         key=settings.jwt_key,
-        algorithm="HS256"
+        algorithm="HS256",
     )
 
 class JWTBearer(HTTPBearer):
     def __init__(
         self, 
-        auto_error: bool = True, 
-        role: str = Roles.admin # default role is 'admin'
+        role: str = Roles.admin
     ):
-        super().__init__(auto_error=auto_error)
+        super().__init__(auto_error=True)
         self.role = role
 
     async def __call__(self, request: Request):
         token: HTTPAuthorizationCredentials = await super().__call__(request)
 
         if token.scheme != "Bearer":
-            raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
+            raise HTTPException(403, "Invalid authentication scheme.")
 
         try:
             payload: dict = jwt.decode(
                 jwt=token.credentials,
                 key=settings.jwt_key,
-                algorithms=["HS256"]
+                algorithms=["HS256"],
             )
         except ExpiredSignatureError:
-            raise HTTPException(status_code=403, detail="Token has expired.")
+            raise HTTPException(403, "Token has expired.")
         except InvalidTokenError:
-            raise HTTPException(status_code=403, detail="Invalid token.")
+            raise HTTPException(403, "Invalid token.")
         except:
-            raise HTTPException(status_code=403, detail="Invalid error.")
+            raise HTTPException(403, "Invalid error.")
         if payload.get("role") not in [self.role, Roles.admin]:
-            raise HTTPException(status_code=403, detail="Access denied for this role.")
-        # if payload.get("role") != self.role:
-        #     raise HTTPException(status_code=403, detail="Invalid role.")
+            raise HTTPException(403, "Access denied for this role.")
+
         return token.credentials

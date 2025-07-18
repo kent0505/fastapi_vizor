@@ -1,5 +1,8 @@
 import time
 
 def get_timestamp() -> int:
-    timestamp: int = int(time.time())
-    return timestamp
+    return int(time.time())
+
+def get_format(value: str) -> str:
+    return value.split('.')[-1]
+

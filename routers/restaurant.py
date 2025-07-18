@@ -1,94 +1,76 @@
-from fastapi       import APIRouter, HTTPException, Depends
-from pydantic      import BaseModel
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer, Roles
-from core.db       import Tables, get_db 
+from core.schemas import Restaurant
+from core.utils import get_format
+from core.settings import settings, s3
+from core.db import (
+    db_get_restaurants,
+    db_get_restaurant_by_id,
+    db_add_restaurant,
+    db_update_restaurant,
+    db_delete_restaurant,
+    db_update_restaurant_photo,
+)
 
 router = APIRouter()
 
-class RestaurantModel(BaseModel):
-    title:     str
-    type:      str
-    photo:     str
-    phone:     str
-    instagram: str
-    address:   str
-    latlon:    str
-    hours:     str
-    position:  int
-
 @router.get("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
 async def get_restaurants():
-    async with get_db() as db:
-        cursor = await db.execute(f"SELECT * FROM {Tables.restaurants}")
-        rows = await cursor.fetchall()
+    rows = await db_get_restaurants()
 
-        return {"restaurants": [dict(row) for row in rows]}
+    return {"restaurants": rows}
 
 @router.post("/", dependencies=[Depends(JWTBearer())])
-async def add_restaurant(body: RestaurantModel):
-    async with get_db() as db:
-        await db.execute(f"""
-            INSERT INTO {Tables.restaurants} (title, type, photo, phone, instagram, address, latlon, hours, position)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            body.title,
-            body.type,
-            body.photo,
-            body.phone,
-            body.instagram,
-            body.address,
-            body.latlon,
-            body.hours,
-            body.position
-        ))
-        await db.commit()
+async def add_restaurant(body: Restaurant):
+    await db_add_restaurant(body)
 
-        return {"message": "restaurant added"}
+    return {"message": "restaurant added"}
 
 @router.put("/", dependencies=[Depends(JWTBearer())])
-async def edit_restaurant(id: int, body: RestaurantModel):
-    async with get_db() as db:
-        cursor = await db.execute(f"SELECT * FROM {Tables.restaurants} WHERE id = ?", (id,))
-        row = await cursor.fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="restaurant not found")
+async def edit_restaurant(body: Restaurant):
+    row = await db_get_restaurant_by_id(body.id)
+    if not row:
+        raise HTTPException(404, "restaurant not found")
 
-        await db.execute(f"""
-        UPDATE {Tables.restaurants} SET 
-            title = ?, 
-            type = ?, 
-            photo = ?, 
-            phone = ?, 
-            instagram = ?,
-            address = ?, 
-            latlon = ?, 
-            hours = ?, 
-            position = ? 
-        WHERE id = ?""", (
-            body.title,
-            body.type,
-            body.photo,
-            body.phone,
-            body.instagram,
-            body.address,
-            body.latlon,
-            body.hours,
-            body.position,
-            id
-        ))
-        await db.commit()
+    await db_update_restaurant(body)
 
-        return {"message": "restaurant updated"}
+    return {"message": "restaurant updated"}
 
 @router.delete("/", dependencies=[Depends(JWTBearer())])
 async def delete_restaurant(id: int):
-    async with get_db() as db:
-        cursor = await db.execute(f"SELECT * FROM {Tables.restaurants} WHERE id = ?", (id,))
-        row = await cursor.fetchone()
-        if not row:
-            raise HTTPException(status_code=404, detail="restaurant not found")
+    row = await db_get_restaurant_by_id(id)
+    if not row:
+        raise HTTPException(404, "restaurant not found")
+    
+    await db_delete_restaurant(id)
+    
+    return {"message": "restaurant deleted"}
 
-        await db.execute(f"DELETE FROM {Tables.restaurants} WHERE id = ?", (id,))
-        await db.commit()
+@router.put("/photo", dependencies=[Depends(JWTBearer())])
+async def edit_restaurant_photo(id: int, file: UploadFile = File(...)):
+    row = await db_get_restaurant_by_id(id)
+    if not row:
+        raise HTTPException(404, "restaurant not found")
+    
+    format = get_format(str(file.filename))
+    if format not in settings.image_formats:
+        raise HTTPException(400, 'file error')
 
-        return {"message": "restaurant deleted"}
+    key = f"restaurants/{id}.{format}"
+    url = f"{settings.endpoint_url}/{settings.bucket}/{key}"
+
+    s3.delete_object(
+        Bucket=settings.bucket, 
+        Key=f"restaurants/{id}.{get_format(row.photo)}",
+    )
+
+    s3.put_object(
+        Bucket=settings.bucket,
+        Key=key,
+        Body=await file.read(),
+        ContentType=file.content_type,
+    )
+
+    await db_update_restaurant_photo(url, id)
+
+    return {"message": "restaurant photo updated"}
