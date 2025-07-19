@@ -12,10 +12,10 @@
         <thead>
             <tr>
                 <th>id</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Age</th>
-                <th>Photo</th>
+                <th>name</th>
+                <th>phone</th>
+                <th>age</th>
+                <th>photo</th>
             </tr>
         </thead>
         <tbody>
@@ -60,6 +60,26 @@
                     <td>{{ restaurant.latlon }}</td>
                     <td>{{ restaurant.hours }}</td>
                     <td>{{ restaurant.position }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Panoramas</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>photo</th>
+                <th>rid</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for panorama in panoramas %}
+                <tr>
+                    <td>{{ panorama.id }}</td>
+                    <td>{{ panorama.photo }}</td>
+                    <td>{{ panorama.rid }}</td>
                 </tr>
             {% endfor %}
         </tbody>

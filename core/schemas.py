@@ -22,5 +22,5 @@ class Restaurant(BaseModel):
 
 class Panorama(BaseModel):
     id: Optional[int] = None
-    url: str
+    photo: str
     rid: int

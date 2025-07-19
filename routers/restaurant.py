@@ -2,7 +2,8 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer, Roles
 from core.schemas import Restaurant
 from core.utils import get_format
-from core.settings import settings, s3
+from core.settings import settings
+from core.s3 import delete_object, put_object
 from core.db import (
     db_get_restaurants,
     db_get_restaurant_by_id,
@@ -36,18 +37,8 @@ async def edit_restaurant(body: Restaurant):
 
     return {"message": "restaurant updated"}
 
-@router.delete("/", dependencies=[Depends(JWTBearer())])
-async def delete_restaurant(id: int):
-    row = await db_get_restaurant_by_id(id)
-    if not row:
-        raise HTTPException(404, "restaurant not found")
-    
-    await db_delete_restaurant(id)
-    
-    return {"message": "restaurant deleted"}
-
-@router.put("/photo", dependencies=[Depends(JWTBearer())])
-async def edit_restaurant_photo(id: int, file: UploadFile = File(...)):
+@router.patch("/", dependencies=[Depends(JWTBearer())])
+async def edit_restaurant_photo(id: int, file: UploadFile = File()):
     row = await db_get_restaurant_by_id(id)
     if not row:
         raise HTTPException(404, "restaurant not found")
@@ -59,18 +50,21 @@ async def edit_restaurant_photo(id: int, file: UploadFile = File(...)):
     key = f"restaurants/{id}.{format}"
     url = f"{settings.endpoint_url}/{settings.bucket}/{key}"
 
-    s3.delete_object(
-        Bucket=settings.bucket, 
-        Key=f"restaurants/{id}.{get_format(row.photo)}",
-    )
-
-    s3.put_object(
-        Bucket=settings.bucket,
-        Key=key,
-        Body=await file.read(),
-        ContentType=file.content_type,
-    )
+    await delete_object(f"restaurants/{id}.{get_format(row.photo)}")
+    await put_object(key, file)
 
     await db_update_restaurant_photo(url, id)
 
     return {"message": "restaurant photo updated"}
+
+@router.delete("/", dependencies=[Depends(JWTBearer())])
+async def delete_restaurant(id: int):
+    row = await db_get_restaurant_by_id(id)
+    if not row:
+        raise HTTPException(404, "restaurant not found")
+    
+    await delete_object(f"restaurants/{id}.{get_format(row.photo)}")
+    
+    await db_delete_restaurant(id)
+    
+    return {"message": "restaurant deleted"}

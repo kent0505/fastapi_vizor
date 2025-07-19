@@ -4,6 +4,7 @@ from typing import AsyncGenerator, Union, List
 from core.schemas import (
     User, 
     Restaurant,
+    Panorama,
 )
 
 import aiosqlite
@@ -49,7 +50,7 @@ class Sql:
     panoramas: str = f"""
         CREATE TABLE IF NOT EXISTS panoramas (
             {ID},
-            url {TEXT},
+            photo {TEXT},
             rid {INTEGER}
         );
     """
@@ -231,8 +232,43 @@ async def db_update_restaurant_photo(url: str, id: int) -> None:
         await db.execute("UPDATE restaurants SET photo = ? WHERE id = ?", (url, id))
         await db.commit()
 
-async def db_get_panoramas(rid: int) -> List[aiosqlite.Row]:
+async def db_get_panoramas() -> List[aiosqlite.Row]:
+    async with get_db() as db:
+        cursor = await db.execute(f"SELECT * FROM panoramas")
+        rows = await cursor.fetchall()
+        return rows
+
+async def db_get_panoramas_by_rid(rid: int) -> List[aiosqlite.Row]:
     async with get_db() as db:
         cursor = await db.execute(f"SELECT * FROM panoramas WHERE rid = ?", (rid,))
         rows = await cursor.fetchall()
         return rows
+
+async def db_get_panorama_by_id(id: int) -> Union[Panorama, None]:
+    async with get_db() as db:
+        cursor = await db.execute(f"SELECT * FROM panoramas WHERE id = ?", (id,))
+        row = await cursor.fetchone()
+        if row:
+            return Panorama(
+                id=row["id"],
+                photo=row["photo"],
+                rid=row["rid"],
+            )
+        return row
+
+async def db_add_panorama(photo: str, rid: int) -> None:
+    async with get_db() as db:
+        await db.execute("""
+            INSERT INTO panoramas (
+                photo, 
+                rid
+            ) VALUES (?, ?)""", (
+            photo, 
+            rid,
+        ))
+        await db.commit()
+
+async def db_delete_panorama(id: int) -> None:
+    async with get_db() as db:
+        await db.execute("DELETE FROM panoramas WHERE id = ?", (id,))
+        await db.commit()

@@ -1,8 +1,6 @@
 from pydantic import BaseModel
 from typing import List
-from mypy_boto3_s3 import S3Client
 
-import boto3
 import os
 
 class Settings(BaseModel):
@@ -19,11 +17,3 @@ class Settings(BaseModel):
     year_seconds: int = 31536000
 
 settings = Settings()
-
-s3: S3Client = boto3.client(
-    "s3",
-    endpoint_url=settings.endpoint_url,
-    aws_access_key_id=settings.aws_access_key_id,
-    aws_secret_access_key=settings.aws_secret_access_key,
-    region_name="ru-1",
-)
