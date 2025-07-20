@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
-from core.security import JWTBearer
+from core.security import JWTBearer, Roles
 from urllib.parse import urlparse
 from core.settings import settings
 from core.s3 import delete_object, put_object
@@ -9,14 +9,14 @@ from core.db import (
     db_get_panorama_by_id,
     db_add_panorama,
     db_get_restaurant_by_id,
-    db_delete_panorama,
+    db_delete_panorama
 )
 
 import os
 
 router = APIRouter()
 
-@router.get("/", dependencies=[Depends(JWTBearer())])
+@router.get("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
 async def get_panoramas(rid: int):
     rows = await db_get_panoramas_by_rid(rid)
 
@@ -36,11 +36,10 @@ async def add_panorama(rid: int, file: UploadFile = File()):
         raise HTTPException(400, 'file error')
 
     key = f"panoramas/{get_timestamp()}.{format}"
-    url = f"{settings.endpoint_url}/{settings.bucket}/{key}"
 
     await put_object(key, file)
 
-    await db_add_panorama(url, rid)
+    await db_add_panorama(key, rid)
 
     return {"message": "panorama added"}
 

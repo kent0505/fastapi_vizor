@@ -71,12 +71,11 @@ async def edit_user_photo(id: int, file: UploadFile = File()):
         raise HTTPException(400, 'file error')
 
     key = f"users/{id}.{format}"
-    url = f"{settings.endpoint_url}/{settings.bucket}/{key}"
 
     await delete_object(f"users/{id}.{get_format(row.photo)}")
     await put_object(key, file)
 
-    await db_update_user_photo(url, id)
+    await db_update_user_photo(key, id)
 
     return {"message": "user photo updated"}
 

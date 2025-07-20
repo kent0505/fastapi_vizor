@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer, Roles
 from core.schemas import Restaurant
-from core.utils import get_format
 from core.settings import settings
+from core.utils import get_format
 from core.s3 import delete_object, put_object
 from core.db import (
     db_get_restaurants,
@@ -48,12 +48,11 @@ async def edit_restaurant_photo(id: int, file: UploadFile = File()):
         raise HTTPException(400, 'file error')
 
     key = f"restaurants/{id}.{format}"
-    url = f"{settings.endpoint_url}/{settings.bucket}/{key}"
 
     await delete_object(f"restaurants/{id}.{get_format(row.photo)}")
     await put_object(key, file)
 
-    await db_update_restaurant_photo(url, id)
+    await db_update_restaurant_photo(key, id)
 
     return {"message": "restaurant photo updated"}
 

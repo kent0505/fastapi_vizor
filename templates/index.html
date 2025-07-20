@@ -84,5 +84,55 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <h2>Hotspots</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>number</th>
+                <th>latlon</th>
+                <th>pid</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for hotspot in hotspots %}
+                <tr>
+                    <td>{{ hotspot.id }}</td>
+                    <td>{{ hotspot.number }}</td>
+                    <td>{{ hotspot.latlon }}</td>
+                    <td>{{ hotspot.pid }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Menus</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>title</th>
+                <th>description</th>
+                <th>category</th>
+                <th>photo</th>
+                <th>price</th>
+                <th>rid</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for menu in menus %}
+                <tr>
+                    <td>{{ menu.id }}</td>
+                    <td>{{ menu.title }}</td>
+                    <td>{{ menu.description }}</td>
+                    <td>{{ menu.category }}</td>
+                    <td>{{ menu.photo }}</td>
+                    <td>{{ menu.price }}</td>
+                    <td>{{ menu.rid }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
