@@ -1,29 +1,19 @@
 from fastapi import APIRouter, HTTPException, Depends
-from core.security import JWTBearer, Roles
-from core.schemas import Hotspot
+from core.security import JWTBearer
+from core.schemas import Panorama, Hotspot
 from core.db import (
-    db_get_panorama_by_id,
-    db_get_hotspots_by_pid,
-    db_get_hotspot_by_id,
+    Tables,
+    db_get_by_id,
     db_add_hotspot,
     db_update_hotspot,
-    db_delete_hotspot,
+    db_delete,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(JWTBearer())])
 
-@router.get("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
-async def get_hotspots(pid: int):
-    rows = await db_get_hotspots_by_pid(pid)
-
-    return {
-        "pid": pid,
-        "hotspots": rows,
-    }
-
-@router.post("/", dependencies=[Depends(JWTBearer())])
+@router.post("/")
 async def add_hotspot(body: Hotspot):
-    row = await db_get_panorama_by_id(body.pid)
+    row = await db_get_by_id(Panorama, Tables.panoramas, body.pid)
     if not row:
         raise HTTPException(404, "panorama not found")
 
@@ -31,13 +21,13 @@ async def add_hotspot(body: Hotspot):
 
     return {"message": "hotspot added"}
 
-@router.put("/", dependencies=[Depends(JWTBearer())])
+@router.put("/")
 async def edit_hotspot(body: Hotspot):
-    row = await db_get_hotspot_by_id(body.id)
+    row = await db_get_by_id(Hotspot, Tables.hotspots, body.id)
     if not row:
         raise HTTPException(404, "hotspot not found")
     
-    row = await db_get_panorama_by_id(body.pid)
+    row = await db_get_by_id(body.pid)
     if not row:
         raise HTTPException(404, "panorama not found")
     
@@ -45,12 +35,12 @@ async def edit_hotspot(body: Hotspot):
 
     return {"message": "hotspot updated"}
 
-@router.delete("/", dependencies=[Depends(JWTBearer())])
+@router.delete("/")
 async def delete_hotspot(id: int):
-    row = await db_get_hotspot_by_id(id)
+    row = await db_get_by_id(Hotspot, Tables.hotspots, id)
     if not row:
         raise HTTPException(404, "hotspot not found")
     
-    await db_delete_hotspot(id)
+    await db_delete(Tables.hotspots, id)
     
     return {"message": "hotspot deleted"}

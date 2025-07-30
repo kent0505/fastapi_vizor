@@ -1,33 +1,23 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
-from core.security import JWTBearer, Roles
-from core.schemas import Menu
+from core.security import JWTBearer
+from core.schemas import Restaurant, Menu
 from core.settings import settings
 from core.utils import get_format
 from core.s3 import delete_object, put_object
 from core.db import (
-    db_get_restaurant_by_id,
-    db_get_menus_by_rid,
-    db_get_menu_by_id,
+    Tables,
+    db_get_by_id,
     db_add_menu,
     db_update_menu,
-    db_update_menu_photo,
-    db_delete_menu,
+    db_update_photo,
+    db_delete,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(JWTBearer())])
 
-@router.get("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
-async def get_hotspots(rid: int):
-    rows = await db_get_menus_by_rid(rid)
-
-    return {
-        "rid": rid,
-        "hotspots": rows,
-    }
-
-@router.post("/", dependencies=[Depends(JWTBearer())])
+@router.post("/")
 async def add_menu(body: Menu):
-    row = await db_get_restaurant_by_id(body.rid)
+    row = await db_get_by_id(Restaurant, Tables.restaurants, body.rid)
     if not row:
         raise HTTPException(404, "restaurant not found")
 
@@ -35,9 +25,9 @@ async def add_menu(body: Menu):
 
     return {"message": "menu added"}
 
-@router.put("/", dependencies=[Depends(JWTBearer())])
+@router.put("/")
 async def edit_menu(body: Menu):
-    row = await db_get_menu_by_id(body.id)
+    row = await db_get_by_id(Menu, Tables.menus, body.id)
     if not row:
         raise HTTPException(404, "menu not found")
 
@@ -45,9 +35,9 @@ async def edit_menu(body: Menu):
 
     return {"message": "menu updated"}
 
-@router.patch("/", dependencies=[Depends(JWTBearer())])
+@router.patch("/")
 async def edit_menu_photo(id: int, file: UploadFile = File()):
-    row = await db_get_menu_by_id(id)
+    row = await db_get_by_id(Menu, Tables.menus, id)
     if not row:
         raise HTTPException(404, "menu not found")
     
@@ -60,18 +50,18 @@ async def edit_menu_photo(id: int, file: UploadFile = File()):
     await delete_object(f"menus/{id}.{get_format(row.photo)}")
     await put_object(key, file)
 
-    await db_update_menu_photo(key, id)
+    await db_update_photo(Tables.menus, key, id)
 
     return {"message": "menu photo updated"}
 
-@router.delete("/", dependencies=[Depends(JWTBearer())])
+@router.delete("/")
 async def delete_menu(id: int):
-    row = await db_get_menu_by_id(id)
+    row = await db_get_by_id(Menu, Tables.menus, id)
     if not row:
         raise HTTPException(404, "menu not found")
     
     await delete_object(f"menus/{id}.{get_format(row.photo)}")
     
-    await db_delete_menu(id)
+    await db_delete(Tables.menus, id)
     
     return {"message": "menu deleted"}

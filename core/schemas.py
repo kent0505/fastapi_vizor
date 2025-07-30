@@ -2,11 +2,17 @@ from pydantic import BaseModel
 from typing import Optional
 from dataclasses import dataclass
 
+class LoginBody(BaseModel):
+    phone: int
+    password: str = ''
+
 class User(BaseModel):
     id: Optional[int] = None
     name: str
     phone: str
+    password: str
     age: int
+    role: Optional[str] = None
     photo: Optional[str] = None
 
 class Restaurant(BaseModel):
@@ -52,7 +58,9 @@ class Sql:
             {ID},
             name {TEXT},
             phone {TEXT},
+            password {TEXT},
             age {INTEGER},
+            role {TEXT},
             photo {TEXT} DEFAULT ''
         );
     """

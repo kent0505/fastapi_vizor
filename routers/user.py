@@ -1,92 +1,98 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
+from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer, Roles, signJWT
-from core.schemas import User
+from core.schemas import User, LoginBody
 from core.settings import settings
+from core.utils import check_password, hash_password
 from core.utils import get_timestamp, get_format
-from core.s3 import delete_object, put_object
+from core.s3 import delete_object
 from core.db import (
-    db_get_user_by_id, 
-    db_get_user_by_phone,
+    Tables,
+    Wheres,
+    db_get_by_id, 
+    db_get_list,
     db_add_user,
-    db_update_user,
-    db_update_user_photo,
-    db_delete_user,
+    db_delete,
 )
 
 router = APIRouter()
 
 @router.post("/login")
-async def login(phone: str, password: str):
-    row = await db_get_user_by_phone(phone)
+async def login(body: LoginBody):
+    row = await db_get_by_id(
+        User, 
+        Tables.users, 
+        body.phone, 
+        Wheres.phone,
+    )
     if not row:
         raise HTTPException(404, "phone number does not exist")
 
-    now = get_timestamp()
-    role = Roles.user
-    exp = now + settings.year_seconds
-    if password == settings.password:
-        role = Roles.admin
-        exp = now + settings.day_seconds
+    hashed = check_password(body.password, row.password)
 
-    access_token: str = signJWT(row.id, role, exp)
+    if not hashed:
+        raise HTTPException(401, "invalid password")
+
+    access_token: str = signJWT(
+        row.id, 
+        row.role, 
+        get_timestamp() + settings.year_seconds,
+    )
 
     return {
         "access_token": access_token,
-        "role": role,
+        "role": row.role,
     }
 
 @router.post("/register")
 async def register(body: User):
-    row = await db_get_user_by_phone(body.phone)
+    row = await db_get_by_id(
+        User, 
+        Tables.users, 
+        body.phone, 
+        Wheres.phone
+    )
     if row:
         raise HTTPException(404, "user already exists")
 
-    await db_add_user(body)
+    rows = await db_get_list(Tables.users)
+
+    body.password = hash_password(body.password)
+    
+    await db_add_user(
+        body, 
+        Roles.admin if not rows else Roles.user
+    )
 
     return {"message": "user registered"}
 
-@router.put("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
-async def edit_user(body: User):
-    row = await db_get_user_by_id(body.id)
-    if not row:
-        raise HTTPException(404, "user not found")
+@router.post("/register/admin", dependencies=[Depends(JWTBearer())])
+async def register(
+    body: User, 
+    role: Roles,
+):
+    row = await db_get_by_id(
+        User, 
+        Tables.users, 
+        body.phone, 
+        Wheres.phone
+    )
+    if row:
+        raise HTTPException(404, "user already exists")
     
-    if row.phone != body.phone:
-        row = await db_get_user_by_phone(body.phone)
-        if row:
-            raise HTTPException(404, "phone number already exists")
+    body.password = hash_password(body.password)
 
-    await db_update_user(body)
+    await db_add_user(body, role.value)
 
-    return {"message": "user updated"}
-
-@router.patch("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
-async def edit_user_photo(id: int, file: UploadFile = File()):
-    row = await db_get_user_by_id(id)
-    if not row:
-        raise HTTPException(404, "user not found")
-    
-    format = get_format(str(file.filename))
-    if format not in settings.image_formats:
-        raise HTTPException(400, 'file error')
-
-    key = f"users/{id}.{format}"
-
-    await delete_object(f"users/{id}.{get_format(row.photo)}")
-    await put_object(key, file)
-
-    await db_update_user_photo(key, id)
-
-    return {"message": "user photo updated"}
+    return {"message": f"{role.value} registered"}
 
 @router.delete("/", dependencies=[Depends(JWTBearer())])
 async def delete_user(id: int):
-    row = await db_get_user_by_id(id)
+    row = await db_get_by_id(User, Tables.users, id)
     if not row:
         raise HTTPException(404, "user not found")
     
     await delete_object(f"users/{id}.{get_format(row.photo)}") 
 
-    await db_delete_user(id)
+    await db_delete(Tables.users, id)
 
     return {"message": "user deleted"}

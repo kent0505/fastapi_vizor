@@ -1,15 +1,15 @@
 from fastapi import Request, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
+from enum import Enum
 from core.settings import settings
-from dataclasses import dataclass
 
 import jwt
 
-@dataclass
-class Roles:
-    admin: str = "admin"
-    user: str = "user"
+class Roles(str, Enum):
+    admin = "admin"
+    stuff = "stuff"
+    user = "user"
 
 def signJWT(
     id: int, 
@@ -29,7 +29,7 @@ def signJWT(
 class JWTBearer(HTTPBearer):
     def __init__(
         self, 
-        role: str = Roles.admin
+        role: str = Roles.admin,
     ):
         super().__init__(auto_error=True)
         self.role = role
@@ -52,7 +52,13 @@ class JWTBearer(HTTPBearer):
             raise HTTPException(403, "Invalid token.")
         except:
             raise HTTPException(403, "Invalid error.")
-        if payload.get("role") not in [self.role, Roles.admin]:
+
+        if self.role == Roles.user:
+            allowed_roles = [Roles.user, Roles.stuff, Roles.admin]
+        else:
+            allowed_roles = [self.role, Roles.admin]
+
+        if payload.get("role") not in allowed_roles:
             raise HTTPException(403, "Access denied for this role.")
 
         return token.credentials

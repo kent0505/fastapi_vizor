@@ -1,35 +1,29 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
-from core.security import JWTBearer, Roles
+from core.security import JWTBearer
 from core.schemas import Restaurant
 from core.settings import settings
 from core.utils import get_format
 from core.s3 import delete_object, put_object
 from core.db import (
-    db_get_restaurants,
-    db_get_restaurant_by_id,
+    Tables,
+    db_get_by_id,
     db_add_restaurant,
     db_update_restaurant,
-    db_delete_restaurant,
-    db_update_restaurant_photo,
+    db_update_photo,
+    db_delete,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(JWTBearer())])
 
-@router.get("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
-async def get_restaurants():
-    rows = await db_get_restaurants()
-
-    return {"restaurants": rows}
-
-@router.post("/", dependencies=[Depends(JWTBearer())])
+@router.post("/")
 async def add_restaurant(body: Restaurant):
     await db_add_restaurant(body)
 
     return {"message": "restaurant added"}
 
-@router.put("/", dependencies=[Depends(JWTBearer())])
+@router.put("/")
 async def edit_restaurant(body: Restaurant):
-    row = await db_get_restaurant_by_id(body.id)
+    row = await db_get_by_id(Restaurant, Tables.restaurants, body.id)
     if not row:
         raise HTTPException(404, "restaurant not found")
 
@@ -37,9 +31,9 @@ async def edit_restaurant(body: Restaurant):
 
     return {"message": "restaurant updated"}
 
-@router.patch("/", dependencies=[Depends(JWTBearer())])
+@router.patch("/")
 async def edit_restaurant_photo(id: int, file: UploadFile = File()):
-    row = await db_get_restaurant_by_id(id)
+    row = await db_get_by_id(Restaurant, Tables.restaurants, id)
     if not row:
         raise HTTPException(404, "restaurant not found")
     
@@ -52,18 +46,18 @@ async def edit_restaurant_photo(id: int, file: UploadFile = File()):
     await delete_object(f"restaurants/{id}.{get_format(row.photo)}")
     await put_object(key, file)
 
-    await db_update_restaurant_photo(key, id)
+    await db_update_photo(Tables.restaurants, key, id)
 
     return {"message": "restaurant photo updated"}
 
-@router.delete("/", dependencies=[Depends(JWTBearer())])
+@router.delete("/")
 async def delete_restaurant(id: int):
-    row = await db_get_restaurant_by_id(id)
+    row = await db_get_by_id(Restaurant, Tables.restaurants, id)
     if not row:
         raise HTTPException(404, "restaurant not found")
     
     await delete_object(f"restaurants/{id}.{get_format(row.photo)}")
     
-    await db_delete_restaurant(id)
+    await db_delete(Tables.restaurants, id)
     
     return {"message": "restaurant deleted"}

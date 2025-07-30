@@ -1,33 +1,24 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
-from core.security import JWTBearer, Roles
+from core.security import JWTBearer
 from urllib.parse import urlparse
 from core.settings import settings
+from core.schemas import Restaurant, Panorama
 from core.s3 import delete_object, put_object
 from core.utils import get_format, get_timestamp
 from core.db import (
-    db_get_panoramas_by_rid,
-    db_get_panorama_by_id,
+    Tables,
+    db_get_by_id,
     db_add_panorama,
-    db_get_restaurant_by_id,
-    db_delete_panorama
+    db_delete,
 )
 
 import os
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(JWTBearer())])
 
-@router.get("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
-async def get_panoramas(rid: int):
-    rows = await db_get_panoramas_by_rid(rid)
-
-    return {
-        "rid": rid,
-        "panoramas": rows,
-    }
-
-@router.post("/", dependencies=[Depends(JWTBearer())])
+@router.post("/")
 async def add_panorama(rid: int, file: UploadFile = File()):
-    row = await db_get_restaurant_by_id(rid)
+    row = await db_get_by_id(Restaurant, Tables.restaurants, rid)
     if not row:
         raise HTTPException(404, "restaurant not found")
 
@@ -43,9 +34,9 @@ async def add_panorama(rid: int, file: UploadFile = File()):
 
     return {"message": "panorama added"}
 
-@router.delete("/", dependencies=[Depends(JWTBearer())])
+@router.delete("/")
 async def delete_panorama(id: int):
-    row = await db_get_panorama_by_id(id)
+    row = await db_get_by_id(Panorama, Tables.panoramas, id)
     if not row:
         raise HTTPException(404, "panorama not found")
 
@@ -55,6 +46,6 @@ async def delete_panorama(id: int):
 
     await delete_object(f"panoramas/{filename}")
 
-    await db_delete_panorama(id)
+    await db_delete(Tables.panoramas, id)
 
     return {"message": "panorama deleted"}

@@ -1,9 +1,10 @@
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator, Union, List
+from typing import AsyncGenerator, Union, List, Type, TypeVar
+from pydantic import BaseModel
+from enum import Enum
 from core.schemas import (
     User, 
     Restaurant,
-    Panorama,
     Hotspot,
     Menu,
 )
@@ -19,51 +20,93 @@ async def get_db() -> AsyncGenerator[aiosqlite.Connection, None]:
     finally:
         await db.close()
 
-async def db_get_users() -> List[aiosqlite.Row]:
+class Tables(str, Enum):
+    users = "users"
+    restaurants = "restaurants"
+    panoramas = "panoramas"
+    hotspots = "hotspots"
+    menus = "menus"
+    reserves = "reserves"
+
+class Wheres(str, Enum):
+    id = "id"
+    phone = "phone"
+
+def row_to_model(
+    model_class: Type[BaseModel], 
+    row: Union[aiosqlite.Row, None],
+) -> Union[BaseModel, None]:
+    if row is None: 
+        return None
+    return model_class(**dict(row))
+
+T = TypeVar("T", bound=BaseModel)
+
+# GET BY
+async def db_get_by_id(
+    model: Type[T], 
+    table: Tables,
+    id: int,
+    where: Wheres = Wheres.id,
+) -> Union[T, None]:
     async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM users")
+        cursor = await db.execute(f"SELECT * FROM {table.value} WHERE {where.value} = ?", (id,))
+        row = await cursor.fetchone()
+        return row_to_model(model, row)
+
+# GET LIST
+async def db_get_list(table: Tables) -> List[aiosqlite.Row]:
+    async with get_db() as db:
+        cursor = await db.execute(f"SELECT * FROM {table.value}")
         rows = await cursor.fetchall()
         return rows
 
-async def db_get_user_by_id(id: int) -> Union[User, None]:
+# GET LIST BY
+async def db_get_list_by(
+    table: Tables, 
+    where: str, 
+    value: int
+) -> List[aiosqlite.Row]:
     async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM users WHERE id = ?", (id,))
-        row = await cursor.fetchone()
-        if row:
-            return User(
-                id=row["id"],
-                name=row["name"],
-                phone=row["phone"],
-                age=row["age"],
-                photo=row["photo"],
-            )
-        return row
+        cursor = await db.execute(f"SELECT * FROM {table.value} WHERE {where} = ?", (value,))
+        rows = await cursor.fetchall()
+        return rows
 
-async def db_get_user_by_phone(phone: str) -> Union[User, None]:
+# DELETE
+async def db_delete(
+    table: Tables, 
+    id: int,
+) -> List[aiosqlite.Row]:
     async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM users WHERE phone = ?", (phone,))
-        row = await cursor.fetchone()
-        if row:
-            return User(
-                id=row["id"],
-                name=row["name"],
-                phone=row["phone"],
-                age=row["age"],
-                photo=row["photo"],
-            )
-        return row
+        await db.execute(f"DELETE FROM {table.value} WHERE id = ?", (id,))
+        await db.commit()
 
-async def db_add_user(user: User) -> None:
+# UPDATE PHOTO
+async def db_update_photo(
+    table: Tables, 
+    url: str, 
+    id: int,
+) -> None:
+    async with get_db() as db:
+        await db.execute(f"UPDATE {table.value} SET photo = ? WHERE id = ?", (url, id))
+        await db.commit()
+
+# USER
+async def db_add_user(user: User, role: str) -> None:
     async with get_db() as db:
         await db.execute("""
             INSERT INTO users (
-                name, 
-                phone, 
-                age
-            ) VALUES (?, ?, ?)""", (
+                name,
+                phone,
+                password,
+                age,
+                role
+            ) VALUES (?, ?, ?, ?, ?)""", (
             user.name, 
             user.phone, 
+            user.password,
             user.age,
+            role,
         ))
         await db.commit()
 
@@ -73,54 +116,22 @@ async def db_update_user(user: User) -> None:
             UPDATE users SET 
                 name = ?, 
                 phone = ?, 
+                password = ?,
                 age = ? 
             WHERE id = ?""", (
             user.name,
             user.phone,
+            user.password,
             user.age,
             user.id,
         ))
         await db.commit()
 
-async def db_update_user_photo(url: str, id: int) -> None:
-    async with get_db() as db:
-        await db.execute("UPDATE users SET photo = ? WHERE id = ?", (url, id))
-        await db.commit()
-
-async def db_delete_user(id: int) -> None:
-    async with get_db() as db:
-        await db.execute("DELETE FROM users WHERE id = ?", (id,))
-        await db.commit()
-
-async def db_get_restaurants() -> List[aiosqlite.Row]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM restaurants")
-        rows = await cursor.fetchall()
-        return rows
-    
-async def db_get_restaurant_by_id(id: int) -> Union[Restaurant, None]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM restaurants WHERE id = ?", (id,))
-        row = await cursor.fetchone()
-        if row:
-            return Restaurant(
-                id=row["id"],
-                title=row["title"],
-                type=row["type"],
-                photo=row["photo"],
-                phone=row["phone"],
-                instagram=row["instagram"],
-                address=row["address"],
-                latlon=row["latlon"],
-                hours=row["hours"],
-                position=row["position"],
-            )
-        return row
-
+# RESTAURANT
 async def db_add_restaurant(restaurant: Restaurant) -> None:
     async with get_db() as db:
-        await db.execute("""
-            INSERT INTO restaurants (
+        await db.execute(f"""
+            INSERT INTO {Tables.restaurants} (
                 title, 
                 type, 
                 phone, 
@@ -143,8 +154,8 @@ async def db_add_restaurant(restaurant: Restaurant) -> None:
 
 async def db_update_restaurant(restaurant: Restaurant) -> None:
     async with get_db() as db:
-        await db.execute("""
-            UPDATE restaurants SET 
+        await db.execute(f"""
+            UPDATE {Tables.restaurants} SET 
                 title = ?, 
                 type = ?, 
                 phone = ?, 
@@ -166,44 +177,11 @@ async def db_update_restaurant(restaurant: Restaurant) -> None:
         ))
         await db.commit()
 
-async def db_delete_restaurant(id: int) -> None:
-    async with get_db() as db:
-        await db.execute("DELETE FROM restaurants WHERE id = ?", (id,))
-        await db.commit()
-
-async def db_update_restaurant_photo(url: str, id: int) -> None:
-    async with get_db() as db:
-        await db.execute("UPDATE restaurants SET photo = ? WHERE id = ?", (url, id))
-        await db.commit()
-
-async def db_get_panoramas() -> List[aiosqlite.Row]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM panoramas")
-        rows = await cursor.fetchall()
-        return rows
-
-async def db_get_panoramas_by_rid(rid: int) -> List[aiosqlite.Row]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM panoramas WHERE rid = ?", (rid,))
-        rows = await cursor.fetchall()
-        return rows
-
-async def db_get_panorama_by_id(id: int) -> Union[Panorama, None]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM panoramas WHERE id = ?", (id,))
-        row = await cursor.fetchone()
-        if row:
-            return Panorama(
-                id=row["id"],
-                photo=row["photo"],
-                rid=row["rid"],
-            )
-        return row
-
+# PANORAMA
 async def db_add_panorama(photo: str, rid: int) -> None:
     async with get_db() as db:
-        await db.execute("""
-            INSERT INTO panoramas (
+        await db.execute(f"""
+            INSERT INTO {Tables.panoramas} (
                 photo, 
                 rid
             ) VALUES (?, ?)""", (
@@ -212,40 +190,11 @@ async def db_add_panorama(photo: str, rid: int) -> None:
         ))
         await db.commit()
 
-async def db_delete_panorama(id: int) -> None:
-    async with get_db() as db:
-        await db.execute("DELETE FROM panoramas WHERE id = ?", (id,))
-        await db.commit()
-
-async def db_get_hotspots() -> List[aiosqlite.Row]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM hotspots")
-        rows = await cursor.fetchall()
-        return rows
-
-async def db_get_hotspots_by_pid(pid: int) -> List[aiosqlite.Row]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM hotspots WHERE pid = ?", (pid,))
-        rows = await cursor.fetchall()
-        return rows
-
-async def db_get_hotspot_by_id(id: int) -> Union[Hotspot, None]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM hotspots WHERE id = ?", (id,))
-        row = await cursor.fetchone()
-        if row:
-            return Hotspot(
-                id=row["id"],
-                number=row["number"],
-                latlon=row["latlon"],
-                pid=row["pid"],
-            )
-        return row
-
+# HOTSPOT
 async def db_add_hotspot(hotspot: Hotspot) -> None:
     async with get_db() as db:
-        await db.execute("""
-            INSERT INTO hotspots (
+        await db.execute(f"""
+            INSERT INTO {Tables.hotspots} (
                 number, 
                 latlon,
                 pid
@@ -258,8 +207,8 @@ async def db_add_hotspot(hotspot: Hotspot) -> None:
 
 async def db_update_hotspot(hotspot: Hotspot) -> None:
     async with get_db() as db:
-        await db.execute("""
-            UPDATE hotspots SET 
+        await db.execute(f"""
+            UPDATE {Tables.hotspots} SET 
                 number = ?, 
                 latlon = ?, 
                 pid = ?
@@ -271,43 +220,11 @@ async def db_update_hotspot(hotspot: Hotspot) -> None:
         ))
         await db.commit()
 
-async def db_delete_hotspot(id: int) -> None:
-    async with get_db() as db:
-        await db.execute("DELETE FROM hotspots WHERE id = ?", (id,))
-        await db.commit()
-
-async def db_get_menus() -> List[aiosqlite.Row]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM menus")
-        rows = await cursor.fetchall()
-        return rows
-
-async def db_get_menus_by_rid(rid: int) -> List[aiosqlite.Row]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM menus WHERE rid = ?", (rid,))
-        rows = await cursor.fetchall()
-        return rows
-
-async def db_get_menu_by_id(id: int) -> Union[Menu, None]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM menus WHERE id = ?", (id,))
-        row = await cursor.fetchone()
-        if row:
-            return Menu(
-                id=row["id"],
-                title=row["title"],
-                description=row["description"],
-                category=row["category"],
-                photo=row["photo"],
-                price=row["price"],
-                rid=row["rid"],
-            )
-        return row
-
+# MENU
 async def db_add_menu(menu: Menu) -> None:
     async with get_db() as db:
-        await db.execute("""
-            INSERT INTO menus (
+        await db.execute(f"""
+            INSERT INTO {Tables.menus} (
                 title, 
                 description,
                 category,
@@ -324,8 +241,8 @@ async def db_add_menu(menu: Menu) -> None:
 
 async def db_update_menu(menu: Menu) -> None:
     async with get_db() as db:
-        await db.execute("""
-            UPDATE menus SET 
+        await db.execute(f"""
+            UPDATE {Tables.menus} SET 
                 title = ?, 
                 description = ?, 
                 category = ?,
@@ -339,14 +256,4 @@ async def db_update_menu(menu: Menu) -> None:
             menu.rid,
             menu.id,
         ))
-        await db.commit()
-
-async def db_update_menu_photo(url: str, id: int) -> None:
-    async with get_db() as db:
-        await db.execute("UPDATE menus SET photo = ? WHERE id = ?", (url, id))
-        await db.commit()
-
-async def db_delete_menu(id: int) -> None:
-    async with get_db() as db:
-        await db.execute("DELETE FROM menus WHERE id = ?", (id,))
         await db.commit()

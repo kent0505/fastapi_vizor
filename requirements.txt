@@ -2,6 +2,7 @@ fastapi
 uvicorn
 aiosqlite
 pyjwt
+bcrypt
 python-multipart
 python-dotenv
 jinja2
