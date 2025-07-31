@@ -4,16 +4,12 @@ import bcrypt
 def get_timestamp() -> int:
     return int(time.time() * 1000)
 
-def get_format(value: str) -> str:
-    return value.split('.')[-1]
-
 def hash_password(password: str):
     hashed = bcrypt.hashpw(
         password.encode("utf-8"), 
         bcrypt.gensalt(),
     ).decode()
     return hashed
-
 
 def check_password(
     password1: str, 

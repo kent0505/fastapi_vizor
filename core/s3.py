@@ -31,3 +31,6 @@ async def put_object(key: str, file: UploadFile):
         )
     except Exception as e:
         raise HTTPException(500, f"Failed to upload file: {str(e)}")
+
+def get_format(value: str) -> str:
+    return value.split('.')[-1]
