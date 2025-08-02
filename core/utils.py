@@ -1,8 +1,12 @@
 import time
+import random
 import bcrypt
 
 def get_timestamp() -> int:
     return int(time.time() * 1000)
+
+def generate_code() -> int:
+    return random.randint(10000, 99999)
 
 def hash_password(password: str):
     hashed = bcrypt.hashpw(

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from core.security import Roles
 from core.settings import settings
+from core.utils import hash_password
 from db.user import (
     User,
     db_get_users,
@@ -15,18 +16,19 @@ templates = Jinja2Templates(directory="templates")
 async def home(request: Request):
     users = await db_get_users()
     if not users:
+        password: str = hash_password(settings.password)
         await db_add_user(
             role=Roles.admin,
             user=User(
                 name="Otabek",
                 phone="+998998472580",
-                password=settings.password,
+                password=password,
                 age=25,
                 code=0,
             ),
         )
+        users = await db_get_users()
 
-    # users = await db_get_list(Tables.users)
     # restaurants = await db_get_list(Tables.restaurants)
     # panoramas = await db_get_list(Tables.panoramas)
     # hotspots = await db_get_list(Tables.hotspots)
@@ -35,7 +37,7 @@ async def home(request: Request):
     return templates.TemplateResponse(
         "index.html", {
             "request": request,
-            # "users": users,
+            "users": users,
             # "restaurants": restaurants,
             # "panoramas": panoramas,
             # "hotspots": hotspots,

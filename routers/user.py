@@ -4,6 +4,7 @@ from core.security import Roles
 from core.settings import settings
 from core.utils import (
     get_timestamp, 
+    generate_code,
     hash_password, 
     check_password,
 )
@@ -17,9 +18,6 @@ from db.user import (
     db_delete_user,
 )
 
-import random
-import logging
-
 router = APIRouter()
 
 @router.post("/register")
@@ -28,23 +26,46 @@ async def register(phone: str):
     if row:
         raise HTTPException(404, "user already exists")
 
-    code = random.randint(10000, 99999)
-    logging.info(code)
+    code = generate_code()
+
+    # send sms code
 
     await db_add_user(
         role=Roles.user,
         user=User(
             name="",
             phone=phone,
-            password="",
+            password=hash_password(""),
             age=0,
             code=code,
         )
     )
 
+    return {"message": "sms code sent"}
+
+@router.post("/resend_code")
+async def resend_code(phone: str):
+    row = await db_get_user_by_phone(phone)
+    if not row:
+        raise HTTPException(404, "phone number does not exist")
+
+    code = generate_code()
+
     # send sms code
 
-    return {"message": "sms code sent"}
+    await db_update_user(
+        role=row.role,
+        user=User(
+            id=row.id,
+            name=row.name,
+            phone=row.phone,
+            password=row.password,
+            age=row.age,
+            code=code,
+        )
+    )
+
+    return {"message": "sms code resent"}
 
 @router.post("/login")
 async def login(body: LoginBody):
@@ -71,7 +92,21 @@ async def login(body: LoginBody):
         "role": row.role,
     }
 
-@router.post("/register/admin", dependencies=[Depends(JWTBearer())])
+@router.put("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
+async def edit_user(body: User):
+    row = await db_get_user_by_id(body.id)
+    if not row:
+        raise HTTPException(404, "user does not exist")
+
+    body.password = hash_password(body.password)
+    await db_update_user(
+        role=row.role, 
+        user=body,
+    )
+
+    return {"message": "user updated"}
+
+@router.post("/admin", dependencies=[Depends(JWTBearer())])
 async def register(
     body: User, 
     role: Roles,
@@ -86,18 +121,26 @@ async def register(
 
     return {"message": f"{role.value} registered"}
 
-@router.put("/", dependencies=[Depends(JWTBearer(role=Roles.user))])
-async def edit_user(body: User):
+
+@router.put("/admin", dependencies=[Depends(JWTBearer())])
+async def edit_admin(
+    body: User,
+    role: Roles,
+):
     row = await db_get_user_by_id(body.id)
     if not row:
         raise HTTPException(404, "user does not exist")
 
-    await db_update_user(body)
+    body.password = hash_password(body.password)
+    await db_update_user(
+        role=role, 
+        user=body,
+    )
 
     return {"message": "user updated"}
 
-@router.delete("/", dependencies=[Depends(JWTBearer())])
-async def delete_user(id: int):
+@router.delete("/admin", dependencies=[Depends(JWTBearer())])
+async def delete_admin(id: int):
     row = await db_get_user_by_id(id)
     if not row:
         raise HTTPException(404, "user not found")

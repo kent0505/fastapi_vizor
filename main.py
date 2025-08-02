@@ -26,7 +26,6 @@ import logging
 async def lifespan(_: FastAPI):
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
-    logging.info("STARTUP")
     async with get_db() as db:
         await db.execute(user.User.CREATE)
         await db.execute(restaurant.Restaurant.CREATE)
@@ -35,7 +34,6 @@ async def lifespan(_: FastAPI):
         await db.execute(menu.Menu.CREATE)
         await db.commit()
     yield
-    logging.info("SHUTDOWN")
 
 app = FastAPI(
     lifespan=lifespan,

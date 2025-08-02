@@ -5,7 +5,7 @@ import os
 
 class Settings(BaseModel):
     swagger: dict = {"defaultModelsExpandDepth": -1}
-    password: str = os.getenv("PASSWORD")
+    password: str = os.getenv("PASSWORD", "123")
     token: str = os.getenv("TOKEN")
     jwt_key: str = os.getenv("KEY", "xyz")
     endpoint_url: str = os.getenv("S3_ENDPOINT_URL")

@@ -11,7 +11,7 @@ from core.db import (
 import aiosqlite
 
 class LoginBody(BaseModel):
-    phone: int
+    phone: str
     code: int
     password: str = ''
 
@@ -23,7 +23,6 @@ class User(BaseModel):
     age: int
     role: Optional[str] = None
     code: Optional[int] = None
-    status: Optional[int] = None
 
     CREATE: ClassVar[str] = """
         CREATE TABLE IF NOT EXISTS users (
@@ -66,31 +65,38 @@ async def db_add_user(
                 phone,
                 password,
                 age,
-                role,
-                code
+                code,
+                role
             ) VALUES (?, ?, ?, ?, ?, ?)""", (
             user.name, 
             user.phone, 
             user.password,
             user.age,
+            user.code,
             role,
         ))
         await db.commit()
 
-async def db_update_user(user: User) -> None:
+async def db_update_user(
+    user: User,
+    role: str,
+) -> None:
     async with get_db() as db:
         await db.execute("""
             UPDATE users SET 
                 name = ?, 
                 phone = ?, 
                 password = ?,
-                age = ?
+                age = ?,
+                code = ?,
+                role = ?
             WHERE id = ?""", (
             user.name,
             user.phone,
             user.password,
             user.age,
-            user.status,
+            user.code,
+            role,
             user.id,
         ))
         await db.commit()
