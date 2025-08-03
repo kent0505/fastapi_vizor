@@ -21,16 +21,23 @@ async def delete_object(key: str):
     except Exception as e:
         raise HTTPException(500, f"Failed to delete file: {str(e)}")
 
-async def put_object(key: str, file: UploadFile):
+async def put_object(
+    name: str, 
+    file: UploadFile,
+) -> str:  
     try:
+        format = file.filename.split('.')[-1]
+        if format not in settings.image_formats:
+            raise HTTPException(400, 'file error')
+        
+        key = f"{name}.{format}"
+    
         s3.put_object(
             Bucket=settings.bucket,
             Key=key,
             Body=await file.read(),
             ContentType=file.content_type,
         )
+        return key
     except Exception as e:
         raise HTTPException(500, f"Failed to upload file: {str(e)}")
-
-def get_format(value: str) -> str:
-    return value.split('.')[-1]

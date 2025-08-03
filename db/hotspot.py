@@ -1,4 +1,4 @@
-from core.db import *
+from db import *
 
 class Hotspot(BaseModel):
     id: Optional[int] = None

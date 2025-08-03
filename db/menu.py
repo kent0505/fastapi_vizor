@@ -1,4 +1,4 @@
-from core.db import *
+from db import *
 
 class Menu(BaseModel):
     id: Optional[int] = None

@@ -1,6 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from core.security import JWTBearer, Roles
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(JWTBearer())])
 
 # @router.post("/")
 # async def add_restaurant(body: Restaurant):

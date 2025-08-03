@@ -1,7 +1,9 @@
+from dotenv import load_dotenv
 from pydantic import BaseModel
 from typing import List
-
 import os
+
+load_dotenv()
 
 class Settings(BaseModel):
     swagger: dict = {"defaultModelsExpandDepth": -1}
