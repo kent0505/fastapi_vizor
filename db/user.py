@@ -13,26 +13,26 @@ import aiosqlite
 class LoginBody(BaseModel):
     phone: str
     code: int
-    password: str = ''
+    password: Optional[str] = None
 
 class User(BaseModel):
     id: Optional[int] = None
-    name: str
+    name: Optional[str] = None
     phone: str
-    password: str
-    age: int
+    password: Optional[str] = None
+    age: Optional[int] = None
     role: Optional[str] = None
     code: Optional[int] = None
 
     CREATE: ClassVar[str] = """
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            password TEXT NOT NULL,
-            age INTEGER NOT NULL,
-            role TEXT NOT NULL,
-            code INTEGER NOT NULL
+            name TEXT,
+            phone TEXT,
+            password TEXT,
+            age INTEGER,
+            role TEXT,
+            code INTEGER
         );
     """
 

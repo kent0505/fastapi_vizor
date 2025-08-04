@@ -24,7 +24,6 @@ async def home(request: Request):
                 phone="+998998472580",
                 password=password,
                 age=25,
-                code=0,
             ),
         )
         users = await db_get_users()
