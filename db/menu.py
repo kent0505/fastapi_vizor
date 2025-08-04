@@ -1,4 +1,9 @@
-from db import *
+from db import (
+    BaseModel,
+    Optional,
+    ClassVar,
+    get_db,
+)
 
 class Menu(BaseModel):
     id: Optional[int] = None
@@ -56,4 +61,9 @@ async def db_update_menu(menu: Menu) -> None:
             menu.rid,
             menu.id,
         ))
+        await db.commit()
+
+async def db_delete_menu(id: int):
+    async with get_db() as db:
+        await db.execute("DELETE FROM menus WHERE id = ?", (id,))
         await db.commit()

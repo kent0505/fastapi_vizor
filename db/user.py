@@ -5,7 +5,7 @@ from db import (
     Union,
     List,
     get_db,
-    row_to_model
+    row_to_model,
 )
 
 import aiosqlite

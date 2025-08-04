@@ -34,4 +34,3 @@ async def delete_photo(key: str):
     await delete_object(key)
 
     return {"message": "photo deleted"}
-

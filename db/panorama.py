@@ -1,4 +1,12 @@
-from db import *
+from db import (
+    BaseModel,
+    Optional,
+    ClassVar,
+    Union,
+    List,
+    get_db,
+    row_to_model
+)
 
 class Panorama(BaseModel):
     id: Optional[int] = None
@@ -13,9 +21,12 @@ class Panorama(BaseModel):
         );
     """
 
-async def db_add_panorama(photo: str, rid: int) -> None:
+async def db_add_panorama(
+    photo: str, 
+    rid: int,
+) -> None:
     async with get_db() as db:
-        await db.execute(f"""
+        await db.execute("""
             INSERT INTO panoramas (
                 photo, 
                 rid
@@ -23,4 +34,9 @@ async def db_add_panorama(photo: str, rid: int) -> None:
             photo, 
             rid,
         ))
+        await db.commit()
+
+async def db_delete_panorama(id: int):
+    async with get_db() as db:
+        await db.execute("DELETE FROM panoramas WHERE id = ?", (id,))
         await db.commit()
