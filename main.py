@@ -1,6 +1,7 @@
 from fastapi             import FastAPI
 from fastapi.staticfiles import StaticFiles
 from contextlib          import asynccontextmanager
+from core.bot            import start_bot
 from core.settings       import settings
 from routers.home        import router as home_router
 from routers.user        import router as user_router
@@ -21,10 +22,12 @@ from db                  import (
 )
 
 import logging
+import asyncio
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     logging.basicConfig(level=logging.INFO)
+    bot_task = asyncio.create_task(start_bot())
     async with get_db() as db:
         await db.execute(user.User.CREATE)
         # await db.execute(restaurant.Restaurant.CREATE)
@@ -33,6 +36,7 @@ async def lifespan(_: FastAPI):
         # await db.execute(menu.Menu.CREATE)
         await db.commit()
     yield
+    bot_task.cancel()
 
 app = FastAPI(
     lifespan=lifespan,

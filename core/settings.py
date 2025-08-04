@@ -9,7 +9,6 @@ class Settings(BaseModel):
     swagger: dict = {"defaultModelsExpandDepth": -1}
     password: str = os.getenv("PASSWORD", "123")
     token: str = os.getenv("TOKEN")
-    jwt_key: str = os.getenv("KEY", "xyz")
     endpoint_url: str = os.getenv("S3_ENDPOINT_URL")
     aws_access_key_id: str = os.getenv("S3_ACCESS_KEY")
     aws_secret_access_key: str = os.getenv("S3_SECRET_KEY")

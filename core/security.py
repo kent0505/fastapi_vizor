@@ -22,7 +22,7 @@ def signJWT(
             "role": role,
             "exp": exp,
         },
-        key=settings.jwt_key,
+        key=settings.token,
         algorithm="HS256",
     )
 
@@ -43,7 +43,7 @@ class JWTBearer(HTTPBearer):
         try:
             payload: dict = jwt.decode(
                 jwt=token.credentials,
-                key=settings.jwt_key,
+                key=settings.token,
                 algorithms=["HS256"],
             )
         except ExpiredSignatureError:
