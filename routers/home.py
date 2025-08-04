@@ -9,8 +9,6 @@ from db.user import (
     db_add_user,
 )
 
-import os
-
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 

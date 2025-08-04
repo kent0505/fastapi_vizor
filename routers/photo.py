@@ -5,10 +5,7 @@ from db.user import db_get_user_by_id
 
 router = APIRouter()
 
-@router.post(
-    "/user", 
-    # dependencies=[Depends(JWTBearer(role=Roles.user))],
-)
+@router.post("/user", dependencies=[Depends(JWTBearer(role=Roles.user))])
 async def add_user_photo(
     id: int, 
     file: UploadFile = File(),
@@ -26,10 +23,7 @@ async def add_user_photo(
         "photo": photo,
     }
 
-@router.delete(
-    "/", 
-    # dependencies=[Depends(JWTBearer())],
-)
+@router.delete("/", dependencies=[Depends(JWTBearer())])
 async def delete_photo(key: str):
     await delete_object(key)
 
