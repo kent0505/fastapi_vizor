@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
 from core.security import Roles
-from core.utils import hash_password
 from db.user import (
     User,
     db_get_user_by_id,
@@ -14,15 +13,13 @@ from db.user import (
 router = APIRouter()
 
 @router.post("/admin", dependencies=[Depends(JWTBearer())])
-async def register(
+async def add_admin(
     body: User, 
     role: Roles,
 ):
     row = await db_get_user_by_phone(body.phone)
     if row:
         raise HTTPException(409, "user already exists")
-
-    body.password = hash_password(body.password)
 
     await db_add_user(body, role.value)
 
@@ -37,7 +34,6 @@ async def edit_admin(
     if not row:
         raise HTTPException(404, "user not found")
 
-    body.password = hash_password(body.password)
     await db_update_user(
         role=role, 
         user=body,

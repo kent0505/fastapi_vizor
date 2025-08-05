@@ -5,8 +5,6 @@ from core.settings import settings
 from core.utils import (
     get_timestamp, 
     generate_code,
-    hash_password, 
-    check_password,
 )
 from db.user import (
     User,
@@ -50,13 +48,11 @@ async def login(body: LoginBody):
     if not row:
         raise HTTPException(404, "phone number does not exist")
 
-    if row.code is None or row.code != body.code:
-        raise HTTPException(400, "verification code is incorrect")
-    
-    hashed = check_password(body.password, row.password)
+    if row.code is None:
+        raise HTTPException(400, "verification code not sent")
 
-    if row.password and not hashed:
-        raise HTTPException(401, "invalid password")
+    if row.code != body.code:
+        raise HTTPException(400, "verification code is incorrect")
 
     row.code = None
     await db_update_user(

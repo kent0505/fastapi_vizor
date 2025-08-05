@@ -13,13 +13,11 @@ import aiosqlite
 class LoginBody(BaseModel):
     phone: str
     code: int
-    password: Optional[str] = None
 
 class User(BaseModel):
     id: Optional[int] = None
     name: Optional[str] = None
     phone: str
-    password: Optional[str] = None
     age: Optional[int] = None
     role: Optional[str] = None
     code: Optional[int] = None
@@ -29,7 +27,6 @@ class User(BaseModel):
             id INTEGER PRIMARY KEY,
             name TEXT,
             phone TEXT,
-            password TEXT,
             age INTEGER,
             role TEXT,
             code INTEGER
@@ -63,14 +60,12 @@ async def db_add_user(
             INSERT INTO users (
                 name,
                 phone,
-                password,
                 age,
                 code,
                 role
             ) VALUES (?, ?, ?, ?, ?, ?)""", (
             user.name, 
             user.phone, 
-            user.password,
             user.age,
             user.code,
             role,
@@ -86,14 +81,12 @@ async def db_update_user(
             UPDATE users SET 
                 name = ?, 
                 phone = ?, 
-                password = ?,
                 age = ?,
                 code = ?,
                 role = ?
             WHERE id = ?""", (
             user.name,
             user.phone,
-            user.password,
             user.age,
             user.code,
             role,
