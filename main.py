@@ -4,6 +4,7 @@ from contextlib          import asynccontextmanager
 from core.bot            import start_bot
 from core.settings       import settings
 from routers.home        import router as home_router
+from routers.auth        import router as auth_router
 from routers.user        import router as user_router
 from routers.admin       import router as admin_router
 from routers.photo       import router as photo_router
@@ -47,6 +48,7 @@ app.mount(path="/static",    app=StaticFiles(directory="static"),    name="stati
 app.mount(path="/templates", app=StaticFiles(directory="templates"), name="templates")
 
 app.include_router(home_router, include_in_schema=False)
+app.include_router(auth_router,       prefix="/api/v1/auth",       tags=["Auth"])
 app.include_router(user_router,       prefix="/api/v1/user",       tags=["User"])
 app.include_router(admin_router,      prefix="/api/v1/admin",      tags=["Admin"])
 app.include_router(photo_router,      prefix="/api/v1/photo",      tags=["Photo"])
