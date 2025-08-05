@@ -1,8 +1,6 @@
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from core.security import Roles
-from core.settings import settings
-from core.utils import hash_password
 from db.user import (
     User,
     db_get_users,
@@ -16,13 +14,11 @@ templates = Jinja2Templates(directory="templates")
 async def home(request: Request):
     users = await db_get_users()
     if not users:
-        password: str = hash_password(settings.password)
         await db_add_user(
             role=Roles.admin,
             user=User(
                 name="Otabek",
                 phone="+998998472580",
-                password=password,
                 age=25,
             ),
         )
