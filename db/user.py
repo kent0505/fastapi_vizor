@@ -4,11 +4,10 @@ from db import (
     ClassVar,
     Union,
     List,
+    aiosqlite,
     get_db,
     row_to_model,
 )
-
-import aiosqlite
 
 class LoginBody(BaseModel):
     phone: str
@@ -33,6 +32,12 @@ class User(BaseModel):
         );
     """
 
+async def db_get_users() -> List[aiosqlite.Row]:
+    async with get_db() as db:
+        cursor = await db.execute("SELECT * FROM users")
+        rows = await cursor.fetchall()
+        return rows
+
 async def db_get_user_by_id(id: int) -> Union[User, None]:
     async with get_db() as db:
         cursor = await db.execute("SELECT * FROM users WHERE id = ?", (id,))
@@ -44,12 +49,6 @@ async def db_get_user_by_phone(phone: str) -> Union[User, None]:
         cursor = await db.execute("SELECT * FROM users WHERE phone = ?", (phone,))
         row = await cursor.fetchone()
         return row_to_model(User, row)
-
-async def db_get_users() -> List[aiosqlite.Row]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM users")
-        rows = await cursor.fetchall()
-        return rows
 
 async def db_add_user(
     user: User,

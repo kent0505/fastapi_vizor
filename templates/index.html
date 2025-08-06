@@ -33,20 +33,37 @@
         </tbody>
     </table>
 
+    <h2>Cities</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>name</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in cities %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
     <h2>Restaurants</h2>
     <table>
         <thead>
             <tr>
                 <th>id</th>
                 <th>title</th>
-                <th>type</th>
-                <th>photo</th>
                 <th>phone</th>
-                <th>instagram</th>
                 <th>address</th>
                 <th>latlon</th>
                 <th>hours</th>
                 <th>position</th>
+                <th>status</th>
+                <th>city</th>
             </tr>
         </thead>
         <tbody>
@@ -54,14 +71,13 @@
                 <tr>
                     <td>{{ restaurant.id }}</td>
                     <td>{{ restaurant.title }}</td>
-                    <td>{{ restaurant.type }}</td>
-                    <td>{{ restaurant.photo }}</td>
                     <td>{{ restaurant.phone }}</td>
-                    <td>{{ restaurant.instagram }}</td>
                     <td>{{ restaurant.address }}</td>
                     <td>{{ restaurant.latlon }}</td>
                     <td>{{ restaurant.hours }}</td>
                     <td>{{ restaurant.position }}</td>
+                    <td>{{ restaurant.status }}</td>
+                    <td>{{ restaurant.city }}</td>
                 </tr>
             {% endfor %}
         </tbody>

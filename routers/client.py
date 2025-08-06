@@ -1,13 +1,32 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer, Roles
+from db.city import db_get_cities, db_get_city_by_id
+from db.restaurant import db_get_restaurants_by_city
 
-router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.user))])
+router = APIRouter(
+    dependencies=[
+        Depends(JWTBearer(role=Roles.user)),
+    ]
+)
 
-# @router.get("/restaurants")
-# async def get_restaurants():
-#     rows = await db_get_list(Tables.restaurants)
+@router.get("/cities")
+async def get_cities():
+    rows = await db_get_cities()
 
-#     return {"restaurants": rows}
+    return {"cities": rows}
+
+@router.get("/restaurants")
+async def get_restaurants(city: int):
+    row = await db_get_city_by_id(city)
+    if not row:
+        raise HTTPException(404, "city not found")
+
+    rows = await db_get_restaurants_by_city(city)
+
+    return {
+        "city": row.name,
+        "restaurants": rows,
+    }
 
 # @router.get("/panoramas")
 # async def get_panoramas(rid: int):

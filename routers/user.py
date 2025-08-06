@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.security import Roles
+from core.s3 import put_object
 from db.user import (
     User,
     db_get_user_by_id,
@@ -24,3 +25,21 @@ async def edit_user(body: User):
     )
 
     return {"message": "user updated"}
+
+@router.post("/")
+async def add_user_photo(
+    id: int, 
+    file: UploadFile = File(),
+):
+    row = await db_get_user_by_id(id)
+    if not row:
+        raise HTTPException(404, "user not found")
+    
+    key = f"users/{id}"
+
+    photo = await put_object(key, file)
+
+    return {
+        "message": "user photo added",
+        "photo": photo,
+    }
