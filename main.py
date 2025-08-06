@@ -28,7 +28,7 @@ import asyncio
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     logging.basicConfig(level=logging.INFO)
-    bot_task = asyncio.create_task(start_bot())
+    # bot_task = asyncio.create_task(start_bot())
     async with get_db() as db:
         await db.execute(user.User.CREATE)
         # await db.execute(restaurant.Restaurant.CREATE)
@@ -37,7 +37,7 @@ async def lifespan(_: FastAPI):
         # await db.execute(menu.Menu.CREATE)
         await db.commit()
     yield
-    bot_task.cancel()
+    # bot_task.cancel()
 
 app = FastAPI(
     lifespan=lifespan,

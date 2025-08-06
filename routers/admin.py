@@ -3,6 +3,7 @@ from core.security import JWTBearer
 from core.security import Roles
 from db.user import (
     User,
+    db_get_users,
     db_get_user_by_id,
     db_get_user_by_phone,
     db_add_user,
@@ -10,9 +11,15 @@ from db.user import (
     db_delete_user,
 )
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(JWTBearer())])
 
-@router.post("/admin", dependencies=[Depends(JWTBearer())])
+@router.get("/")
+async def get_users():
+    rows = await db_get_users()
+
+    return {"users": rows}
+
+@router.post("/")
 async def add_admin(
     body: User, 
     role: Roles,
@@ -25,7 +32,7 @@ async def add_admin(
 
     return {"message": f"{role.value} registered"}
 
-@router.put("/admin", dependencies=[Depends(JWTBearer())])
+@router.put("/")
 async def edit_admin(
     body: User,
     role: Roles,
@@ -41,7 +48,7 @@ async def edit_admin(
 
     return {"message": "user updated"}
 
-@router.delete("/admin", dependencies=[Depends(JWTBearer())])
+@router.delete("/")
 async def delete_admin(id: int):
     row = await db_get_user_by_id(id)
     if not row:

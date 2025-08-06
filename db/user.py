@@ -63,7 +63,7 @@ async def db_add_user(
                 age,
                 code,
                 role
-            ) VALUES (?, ?, ?, ?, ?, ?)""", (
+            ) VALUES (?, ?, ?, ?, ?)""", (
             user.name, 
             user.phone, 
             user.age,
