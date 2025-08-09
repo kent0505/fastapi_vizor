@@ -1,13 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends
-from core.security import JWTBearer, Roles
+from fastapi import APIRouter, HTTPException
 from db.city import db_get_cities, db_get_city_by_id
 from db.restaurant import db_get_restaurants_by_city
 
-router = APIRouter(
-    dependencies=[
-        Depends(JWTBearer(role=Roles.user)),
-    ]
-)
+router = APIRouter()
 
 @router.get("/cities")
 async def get_cities():

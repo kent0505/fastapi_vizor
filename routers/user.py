@@ -38,6 +38,12 @@ async def add_user_photo(
     key = f"users/{id}"
 
     photo = await put_object(key, file)
+    
+    row.photo = photo
+    await db_update_user(
+        role=row.role, 
+        user=row,
+    )
 
     return {
         "message": "user photo added",

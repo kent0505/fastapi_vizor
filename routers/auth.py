@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from core.security import signJWT
-from core.security import Roles
+from core.security import Roles, signJWT
 from core.settings import settings
+from core.sms import send_sms
 from core.utils import (
     get_timestamp, 
     generate_code,
@@ -20,7 +20,10 @@ router = APIRouter()
 async def send_code(phone: str):
     code = generate_code()
 
-    # send sms code
+    await send_sms(
+        str(code),
+        phone,
+    )
 
     row = await db_get_user_by_phone(phone)
 

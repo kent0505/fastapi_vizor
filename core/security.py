@@ -21,6 +21,7 @@ def signJWT(
             "id": id,
             "role": role,
             "exp": exp,
+            "version": settings.version,
         },
         key=settings.token,
         algorithm="HS256",
@@ -60,5 +61,8 @@ class JWTBearer(HTTPBearer):
 
         if payload.get("role") not in allowed_roles:
             raise HTTPException(403, "Access denied for this role.")
+
+        if payload.get("version") != settings.version:
+            raise HTTPException(403, "Token version mismatch.")
 
         return token.credentials

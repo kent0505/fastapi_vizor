@@ -11,11 +11,14 @@ class Settings(BaseModel):
     image_formats: List[str] = ['png', 'jpg', 'jpeg']
     day_seconds: int = 86400
     year_seconds: int = 31536000
-
-    token: str = os.getenv("TOKEN")
-    endpoint_url: str = os.getenv("S3_ENDPOINT_URL")
-    aws_access_key_id: str = os.getenv("S3_ACCESS_KEY")
+    
+    version:               int = os.getenv("VERSION")
+    token:                 str = os.getenv("TOKEN")
+    endpoint_url:          str = os.getenv("S3_ENDPOINT_URL")
+    aws_access_key_id:     str = os.getenv("S3_ACCESS_KEY")
     aws_secret_access_key: str = os.getenv("S3_SECRET_KEY")
-    bucket: str = os.getenv("S3_BUCKET")
+    bucket:                str = os.getenv("S3_BUCKET")
+    account_sid:           str = os.getenv("ACCOUNT_SID")
+    auth_token:            str = os.getenv("AUTH_TOKEN")
 
 settings = Settings()

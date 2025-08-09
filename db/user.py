@@ -18,6 +18,7 @@ class User(BaseModel):
     name: Optional[str] = None
     phone: str
     age: Optional[int] = None
+    photo: Optional[str] = None
     role: Optional[str] = None
     code: Optional[int] = None
 
@@ -27,6 +28,7 @@ class User(BaseModel):
             name TEXT,
             phone TEXT,
             age INTEGER,
+            photo TEXT,
             role TEXT,
             code INTEGER
         );
@@ -81,12 +83,14 @@ async def db_update_user(
                 name = ?, 
                 phone = ?, 
                 age = ?,
+                photo = ?,
                 code = ?,
                 role = ?
             WHERE id = ?""", (
             user.name,
             user.phone,
             user.age,
+            user.photo,
             user.code,
             role,
             user.id,
