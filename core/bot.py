@@ -1,6 +1,7 @@
-from aiogram  import Bot, Dispatcher, Router
+from aiogram import Bot, Dispatcher, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
+from faststream.rabbit import RabbitBroker
 from core.settings import settings
 
 import logging
@@ -9,18 +10,28 @@ import asyncio
 bot = Bot(token=settings.token)
 dp = Dispatcher()
 router = Router()
+broker = RabbitBroker("amqp://guest:guest@rabbitmq:5672/")
+
+@broker.subscriber("orders")
+async def handle_orders(data: str):
+    await bot.send_message(
+        chat_id=1093286245,
+        text=data,
+    )
 
 async def start_bot():
     dp.include_router(router)
     logging.info("Starting Telegram bot")
     try:
-        await dp.start_polling(bot)
+        async with broker:
+            await broker.start()
+            await dp.start_polling(bot)
     except asyncio.CancelledError:
         logging.info("Telegram bot stopped")
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    await message.answer("Hello")
+    await message.answer(text=str(message.chat.id))
 
 # @asynccontextmanager
 # async def lifespan(app: FastAPI):

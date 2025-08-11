@@ -11,16 +11,16 @@ from db import (
 
 class LoginBody(BaseModel):
     phone: str
-    code: int
+    code: str
 
 class User(BaseModel):
     id: Optional[int] = None
     name: Optional[str] = None
     phone: str
     age: Optional[int] = None
-    photo: Optional[str] = None
     role: Optional[str] = None
-    code: Optional[int] = None
+    code: Optional[str] = None
+    photo: Optional[str] = None
 
     CREATE: ClassVar[str] = """
         CREATE TABLE IF NOT EXISTS users (
@@ -28,9 +28,9 @@ class User(BaseModel):
             name TEXT,
             phone TEXT,
             age INTEGER,
-            photo TEXT,
             role TEXT,
-            code INTEGER
+            code TEXT,
+            photo TEXT
         );
     """
 

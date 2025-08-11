@@ -11,3 +11,4 @@ boto3
 boto3-stubs
 mypy-boto3-s3
 twilio
+faststream[rabbit]

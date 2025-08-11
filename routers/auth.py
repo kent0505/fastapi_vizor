@@ -18,12 +18,9 @@ router = APIRouter()
 
 @router.post("/send_code")
 async def send_code(phone: str):
-    code = generate_code()
+    code = str(generate_code())
 
-    await send_sms(
-        str(code),
-        phone,
-    )
+    await send_sms(code, phone)
 
     row = await db_get_user_by_phone(phone)
 

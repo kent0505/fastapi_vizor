@@ -1,20 +1,21 @@
-from fastapi             import FastAPI
-from fastapi.staticfiles import StaticFiles
-from contextlib          import asynccontextmanager
-from core.bot            import start_bot
-from core.settings       import settings
-from routers.home        import router as home_router
-from routers.auth        import router as auth_router
-from routers.client      import router as client_router
-from routers.user        import router as user_router
-from routers.admin       import router as admin_router
-from routers.photo       import router as photo_router
-from routers.city        import router as city_router
-from routers.restaurant  import router as restaurant_router
-from routers.panorama    import router as panorama_router
-from routers.hotspots    import router as hotspots_router
-from routers.menu        import router as menu_router
-from db                  import (
+from fastapi                   import FastAPI
+from fastapi.staticfiles       import StaticFiles
+from faststream.rabbit.fastapi import RabbitRouter
+from contextlib                import asynccontextmanager
+from core.bot                  import start_bot
+from core.settings             import settings
+from routers.home              import router as home_router
+from routers.auth              import router as auth_router
+from routers.client            import router as client_router
+from routers.user              import router as user_router
+from routers.admin             import router as admin_router
+from routers.photo             import router as photo_router
+from routers.city              import router as city_router
+from routers.restaurant        import router as restaurant_router
+from routers.panorama          import router as panorama_router
+from routers.hotspots          import router as hotspots_router
+from routers.menu              import router as menu_router
+from db                        import (
     get_db,
     user,
     city,
@@ -30,7 +31,7 @@ import asyncio
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     logging.basicConfig(level=logging.INFO)
-    # bot_task = asyncio.create_task(start_bot())
+    bot_task = asyncio.create_task(start_bot())
     async with get_db() as db:
         await db.execute(user.User.CREATE)
         await db.execute(city.City.CREATE)
@@ -40,16 +41,26 @@ async def lifespan(_: FastAPI):
         # await db.execute(menu.Menu.CREATE)
         await db.commit()
     yield
-    # bot_task.cancel()
+    bot_task.cancel()
 
 app = FastAPI(
     lifespan=lifespan,
     swagger_ui_parameters=settings.swagger,
 )
+router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
+
+@router.post("/order")
+async def test(name: str):
+    await router.broker.publish(
+        f"New orders: {name}",
+        queue="orders",
+    )
+    return {"message": "OK"}
 
 app.mount(path="/static",    app=StaticFiles(directory="static"),    name="static")
 app.mount(path="/templates", app=StaticFiles(directory="templates"), name="templates")
 
+app.include_router(router)
 app.include_router(home_router, include_in_schema=False)
 app.include_router(auth_router,       prefix="/api/v1/auth",       tags=["Auth"])
 app.include_router(client_router,     prefix="/api/v1/client",     tags=["Client"])
@@ -64,6 +75,7 @@ app.include_router(restaurant_router, prefix="/api/v1/restaurant", tags=["Restau
 
 # pip install -r requirements.txt
 # uvicorn main:app --reload
+# docker-compose up --build
 
 # WINDOWS
 # python -m venv venv
