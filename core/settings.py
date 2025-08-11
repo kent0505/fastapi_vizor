@@ -24,5 +24,7 @@ class Settings(BaseModel):
     # twilio
     account_sid:           str = os.getenv("ACCOUNT_SID")
     auth_token:            str = os.getenv("AUTH_TOKEN")
+    # broker
+    rabbit_url:            str = os.getenv("RABBIT_URL")
 
 settings = Settings()

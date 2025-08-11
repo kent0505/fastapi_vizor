@@ -47,7 +47,7 @@ app = FastAPI(
     lifespan=lifespan,
     swagger_ui_parameters=settings.swagger,
 )
-router = RabbitRouter("amqp://guest:guest@rabbitmq:5672/")
+router = RabbitRouter(settings.rabbit_url)
 
 @router.post("/order")
 async def test(name: str):

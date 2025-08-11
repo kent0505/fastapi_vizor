@@ -10,7 +10,7 @@ import asyncio
 bot = Bot(token=settings.token)
 dp = Dispatcher()
 router = Router()
-broker = RabbitBroker("amqp://guest:guest@rabbitmq:5672/")
+broker = RabbitBroker(settings.rabbit_url)
 
 @broker.subscriber("orders")
 async def handle_orders(data: str):
