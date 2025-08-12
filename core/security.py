@@ -2,7 +2,7 @@ from fastapi import Request, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
 from enum import Enum
-from core.settings import settings
+from core.config import settings
 
 import jwt
 

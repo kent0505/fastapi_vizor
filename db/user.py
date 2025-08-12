@@ -1,103 +1,62 @@
 from db import (
+    Base, 
+    Mapped, 
     BaseModel,
-    Optional,
-    ClassVar,
-    Union,
+    AsyncSession,
     List,
-    aiosqlite,
-    get_db,
-    row_to_model,
+    Optional,
+    select,
+    mapped_column,
 )
 
 class LoginBody(BaseModel):
     phone: str
     code: str
 
-class User(BaseModel):
+class UserBody(BaseModel):
     id: Optional[int] = None
+    phone: Optional[str] = None
     name: Optional[str] = None
-    phone: str
-    age: Optional[int] = None
-    role: Optional[str] = None
-    code: Optional[str] = None
-    photo: Optional[str] = None
+    age: Optional[str] = None
+    fcm: Optional[str] = None
 
-    CREATE: ClassVar[str] = """
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY,
-            name TEXT,
-            phone TEXT,
-            age INTEGER,
-            role TEXT,
-            code TEXT,
-            photo TEXT
-        );
-    """
+class User(Base):
+    phone: Mapped[str] = mapped_column(unique=True)
+    name: Mapped[str] = mapped_column(nullable=True)
+    age: Mapped[int] = mapped_column(nullable=True)
+    role: Mapped[str] = mapped_column(nullable=True)
+    code: Mapped[str] = mapped_column(nullable=True)
+    fcm: Mapped[str] = mapped_column(nullable=True)
+    photo: Mapped[str] = mapped_column(nullable=True)
 
-async def db_get_users() -> List[aiosqlite.Row]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM users")
-        rows = await cursor.fetchall()
-        return rows
+async def db_get_users(db: AsyncSession) -> List[User]:
+    users = await db.scalars(select(User))
+    return list(users)
 
-async def db_get_user_by_id(id: int) -> Union[User, None]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM users WHERE id = ?", (id,))
-        row = await cursor.fetchone()
-        return row_to_model(User, row)
+async def db_get_user_by_id(
+    db: AsyncSession, 
+    id: int,
+) -> User | None:
+    user = await db.scalar(select(User).filter_by(id=id))
+    return user
 
-async def db_get_user_by_phone(phone: str) -> Union[User, None]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM users WHERE phone = ?", (phone,))
-        row = await cursor.fetchone()
-        return row_to_model(User, row)
+async def db_get_user_by_phone(
+    db: AsyncSession, 
+    phone: str,
+) -> User | None:
+    user = await db.scalar(select(User).filter_by(phone=phone))
+    return user
 
 async def db_add_user(
+    db: AsyncSession, 
     user: User,
-    role: str,
-):
-    async with get_db() as db:
-        await db.execute("""
-            INSERT INTO users (
-                name,
-                phone,
-                age,
-                code,
-                role
-            ) VALUES (?, ?, ?, ?, ?)""", (
-            user.name, 
-            user.phone, 
-            user.age,
-            user.code,
-            role,
-        ))
-        await db.commit()
-
-async def db_update_user(
-    user: User,
-    role: str,
 ) -> None:
-    async with get_db() as db:
-        await db.execute("""
-            UPDATE users SET 
-                name = ?, 
-                phone = ?, 
-                age = ?,
-                photo = ?,
-                code = ?,
-                role = ?
-            WHERE id = ?""", (
-            user.name,
-            user.phone,
-            user.age,
-            user.photo,
-            user.code,
-            role,
-            user.id,
-        ))
-        await db.commit()
+    db.add(user)
+    await db.commit()
 
-async def db_delete_user(id: int):
-    async with get_db() as db:
-        await db.execute("DELETE FROM users WHERE id = ?", (id,))
-        await db.commit()
+async def db_delete_user(
+    db: AsyncSession, 
+    user: User,
+):
+    await db.delete(user)
+    await db.commit()

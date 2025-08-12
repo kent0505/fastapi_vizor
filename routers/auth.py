@@ -1,49 +1,50 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Body, Depends
 from core.security import Roles, signJWT
-from core.settings import settings
+from core.config import settings
 from core.sms import send_sms
-from core.utils import (
-    get_timestamp, 
-    generate_code,
-)
+from core.utils import get_timestamp, generate_code
+from db import AsyncSession, db_helper
 from db.user import (
     User,
     LoginBody,
     db_get_user_by_phone,
     db_add_user,
-    db_update_user,
 )
 
 router = APIRouter()
 
 @router.post("/send_code")
-async def send_code(phone: str):
+async def send_code(
+    phone: str = Body,
+    db: AsyncSession = Depends(db_helper.get_db),
+):
     code = str(generate_code())
 
     await send_sms(code, phone)
 
-    row = await db_get_user_by_phone(phone)
+    row = await db_get_user_by_phone(db, phone)
 
     if row:
         row.code = code
-        await db_update_user(
-            role=row.role,
-            user=row,
-        )
+        await db.commit()
     else:
         await db_add_user(
-            role=Roles.user,
+            db,
             user=User(
                 phone=phone,
                 code=code,
+                role=Roles.user,
             )
         )
 
     return {"message": "sms code sent"}
 
 @router.post("/login")
-async def login(body: LoginBody):
-    row = await db_get_user_by_phone(body.phone)
+async def login(
+    body: LoginBody,
+    db: AsyncSession = Depends(db_helper.get_db),
+):
+    row = await db_get_user_by_phone(db, body.phone)
     if not row:
         raise HTTPException(404, "phone number does not exist")
 
@@ -54,10 +55,7 @@ async def login(body: LoginBody):
         raise HTTPException(400, "verification code is incorrect")
 
     row.code = None
-    await db_update_user(
-        role=row.role,
-        user=row,
-    )
+    await db.commit()
 
     access_token: str = signJWT(
         row.id, 

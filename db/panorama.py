@@ -1,42 +1,44 @@
 from db import (
+    Base, 
+    Mapped, 
     BaseModel,
-    Optional,
-    ClassVar,
-    Union,
+    AsyncSession,
     List,
-    get_db,
-    row_to_model
+    Optional,
+    select,
+    mapped_column,
 )
 
-class Panorama(BaseModel):
+class PanoramaBody(BaseModel):
     id: Optional[int] = None
-    photo: str
     rid: int
+    photo: str
 
-    CREATE: ClassVar[str] = """
-        CREATE TABLE IF NOT EXISTS panoramas (
-            id INTEGER PRIMARY KEY,
-            photo TEXT NOT NULL,
-            rid INTEGER NOT NULL
-        );
-    """
+class Panorama(Base):
+    rid: Mapped[int] = mapped_column()
+    photo: Mapped[str] = mapped_column()
+
+async def db_get_panoramas(db: AsyncSession) -> List[Panorama]:
+    panoramas = await db.scalars(select(Panorama))
+    return list(panoramas)
+
+async def db_get_panorama_by_id(
+    db: AsyncSession, 
+    id: int,
+) -> Panorama | None:
+    panorama = await db.scalar(select(Panorama).filter_by(id=id))
+    return panorama
 
 async def db_add_panorama(
-    photo: str, 
-    rid: int,
+    db: AsyncSession, 
+    panorama: Panorama,
 ) -> None:
-    async with get_db() as db:
-        await db.execute("""
-            INSERT INTO panoramas (
-                photo, 
-                rid
-            ) VALUES (?, ?)""", (
-            photo, 
-            rid,
-        ))
-        await db.commit()
+    db.add(panorama)
+    await db.commit()
 
-async def db_delete_panorama(id: int):
-    async with get_db() as db:
-        await db.execute("DELETE FROM panoramas WHERE id = ?", (id,))
-        await db.commit()
+async def db_delete_panorama(
+    db: AsyncSession, 
+    panorama: Panorama,
+):
+    await db.delete(panorama)
+    await db.commit()

@@ -1,22 +1,42 @@
-from contextlib import asynccontextmanager
+from sqlalchemy import select, desc
+from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from typing import List, Optional
 from pydantic import BaseModel
-from typing import AsyncGenerator, Union, Type, List, Optional, ClassVar
 
-import aiosqlite
+class Base(DeclarativeBase):
+    __abstract__ = True
 
-@asynccontextmanager
-async def get_db() -> AsyncGenerator[aiosqlite.Connection, None]:
-    db = await aiosqlite.connect("sqlite.db")
-    db.row_factory = aiosqlite.Row # To return dict-like rows
-    try:
-        yield db
-    finally:
-        await db.close()
+    @declared_attr.directive
+    def __tablename__(cls):
+        return cls.__name__.lower()
 
-def row_to_model(
-    model_class: Type[BaseModel], 
-    row: Union[aiosqlite.Row, None],
-) -> Union[BaseModel, None]:
-    if row is None: 
-        return None
-    return model_class(**dict(row))
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+class DatabaseHelper:
+    def __init__(
+        self, 
+        url: str,
+        echo: bool = False,
+    ):
+        self.engine = create_async_engine(
+            url=url, 
+            echo=echo,
+        )
+        self.session = async_sessionmaker(
+            bind=self.engine, 
+            autoflush=False, 
+            expire_on_commit=False,
+        )
+    
+    async def dispose(self):
+        await self.engine.dispose()
+
+    async def get_db(self):
+        async with self.session() as session:
+            yield session
+
+db_helper = DatabaseHelper(
+    url="sqlite+aiosqlite:///sqlite.db",
+    echo=False,
+)

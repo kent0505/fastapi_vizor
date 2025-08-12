@@ -2,27 +2,27 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.security import Roles
 from core.s3 import put_object
+from db import AsyncSession, db_helper
 from db.user import (
-    User,
+    UserBody,
     db_get_user_by_id,
-    db_update_user,
 )
 
 router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.user))])
 
 @router.put("/")
-async def edit_user(body: User):
-    row = await db_get_user_by_id(body.id)
+async def edit_user(
+    body: UserBody,
+    db: AsyncSession = Depends(db_helper.get_db),
+):
+    row = await db_get_user_by_id(db, body.id)
     if not row:
         raise HTTPException(404, "user not found")
     
-    if row.phone != body.phone:
-        raise HTTPException(404, "phone number not found")
-
-    await db_update_user(
-        role=row.role, 
-        user=body,
-    )
+    row.name = body.name
+    row.age = body.age
+    row.fcm = body.fcm
+    await db.commit()
 
     return {"message": "user updated"}
 
@@ -30,8 +30,9 @@ async def edit_user(body: User):
 async def add_user_photo(
     id: int, 
     file: UploadFile = File(),
+    db: AsyncSession = Depends(db_helper.get_db),
 ):
-    row = await db_get_user_by_id(id)
+    row = await db_get_user_by_id(db, id)
     if not row:
         raise HTTPException(404, "user not found")
     
@@ -40,10 +41,7 @@ async def add_user_photo(
     photo = await put_object(key, file)
     
     row.photo = photo
-    await db_update_user(
-        role=row.role, 
-        user=row,
-    )
+    await db.commit()
 
     return {
         "message": "user photo added",

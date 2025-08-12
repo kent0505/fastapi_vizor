@@ -1,26 +1,32 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from db import AsyncSession, db_helper
 from db.city import db_get_cities, db_get_city_by_id
 from db.restaurant import db_get_restaurants_by_city
 
 router = APIRouter()
 
 @router.get("/cities")
-async def get_cities():
-    rows = await db_get_cities()
+async def get_cities(
+    db: AsyncSession = Depends(db_helper.get_db),
+):
+    cities = await db_get_cities(db)
 
-    return {"cities": rows}
+    return {"cities": cities}
 
 @router.get("/restaurants")
-async def get_restaurants(city: int):
-    row = await db_get_city_by_id(city)
+async def get_restaurants(
+    city: int,
+    db: AsyncSession = Depends(db_helper.get_db),
+):
+    row = await db_get_city_by_id(db, city)
     if not row:
         raise HTTPException(404, "city not found")
 
-    rows = await db_get_restaurants_by_city(city)
+    restaurants = await db_get_restaurants_by_city(db, city)
 
     return {
         "city": row.name,
-        "restaurants": rows,
+        "restaurants": restaurants,
     }
 
 # @router.get("/panoramas")

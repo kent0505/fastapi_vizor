@@ -1,6 +1,6 @@
 from fastapi import UploadFile, HTTPException
 from mypy_boto3_s3 import S3Client
-from core.settings import settings
+from core.config import settings
 
 import boto3
 

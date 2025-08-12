@@ -1,15 +1,15 @@
 from db import (
+    Base, 
+    Mapped, 
     BaseModel,
-    Optional,
-    ClassVar,
-    Union,
+    AsyncSession,
     List,
-    aiosqlite,
-    get_db,
-    row_to_model,
+    Optional,
+    select,
+    mapped_column,
 )
 
-class Restaurant(BaseModel):
+class RestaurantBody(BaseModel):
     id: Optional[int] = None
     title: Optional[str] = None
     phone: Optional[str] = None
@@ -17,91 +17,48 @@ class Restaurant(BaseModel):
     latlon: Optional[str] = None
     hours: Optional[str] = None
     position: Optional[int] = None
-    status: Optional[int] = None
     city: Optional[int] = None
+    status: Optional[int] = None
 
-    CREATE: ClassVar[str] = """
-        CREATE TABLE IF NOT EXISTS restaurants (
-            id INTEGER PRIMARY KEY,
-            title TEXT,
-            phone TEXT,
-            address TEXT,
-            latlon TEXT,
-            hours TEXT,
-            position INTEGER,
-            status INTEGER,
-            city INTEGER
-        );
-    """
+class Restaurant(Base):
+    title: Mapped[str] = mapped_column()
+    phone: Mapped[str] = mapped_column()
+    address: Mapped[str] = mapped_column()
+    latlon: Mapped[str] = mapped_column()
+    hours: Mapped[str] = mapped_column()
+    position: Mapped[int] = mapped_column()
+    city: Mapped[int] = mapped_column()
+    status: Mapped[int] = mapped_column()
+    photo: Mapped[str] = mapped_column()
 
-async def db_get_restaurants() -> List[aiosqlite.Row]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM restaurants")
-        rows = await cursor.fetchall()
-        return rows
+async def db_get_restaurants(db: AsyncSession) -> List[Restaurant]:
+    restaurants = await db.scalars(select(Restaurant))
+    return list(restaurants)
 
-async def db_get_restaurants_by_city(city: int) -> List[aiosqlite.Row]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM restaurants WHERE city = ?", (city,))
-        rows = await cursor.fetchall()
-        return rows
+async def db_get_restaurants_by_city(
+    db: AsyncSession, 
+    city: int,
+) -> List[Restaurant]:
+    restaurants = await db.scalars(select(Restaurant).filter_by(city=city))
+    return list(restaurants)
 
-async def db_get_restaurant_by_id(id: int) -> Union[Restaurant, None]:
-    async with get_db() as db:
-        cursor = await db.execute("SELECT * FROM restaurants WHERE id = ?", (id,))
-        row = await cursor.fetchone()
-        return row_to_model(Restaurant, row)
+async def db_get_restaurant_by_id(
+    db: AsyncSession, 
+    id: int,
+) -> Restaurant | None:
+    restaurant = await db.scalar(select(Restaurant).filter_by(id=id))
+    return restaurant
 
-async def db_add_restaurant(restaurant: Restaurant) -> None:
-    async with get_db() as db:
-        await db.execute("""
-            INSERT INTO restaurants (
-                title, 
-                phone, 
-                address,
-                latlon,
-                hours, 
-                position,
-                status,
-                city
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", (
-            restaurant.title,
-            restaurant.phone,
-            restaurant.address,
-            restaurant.latlon,
-            restaurant.hours,
-            restaurant.position,
-            restaurant.status,
-            restaurant.city,
-        ))
-        await db.commit()
+async def db_add_restaurant(
+    db: AsyncSession, 
+    restaurant: Restaurant,
+) -> None:
+    db.add(restaurant)
+    await db.commit()
 
-async def db_update_restaurant(restaurant: Restaurant) -> None:
-    async with get_db() as db:
-        await db.execute("""
-            UPDATE restaurants SET 
-                title = ?, 
-                phone = ?, 
-                address = ?, 
-                latlon = ?, 
-                hours = ?, 
-                position = ?,
-                status = ?,
-                city = ? 
-            WHERE id = ?""", (
-            restaurant.title,
-            restaurant.phone,
-            restaurant.address,
-            restaurant.latlon,
-            restaurant.hours,
-            restaurant.position,
-            restaurant.status,
-            restaurant.city,
-            restaurant.id,
-        ))
-        await db.commit()
-
-async def db_delete_restaurant(id: int):
-    async with get_db() as db:
-        await db.execute("DELETE FROM restaurants WHERE id = ?", (id,))
-        await db.commit()
+async def db_delete_restaurant(
+    db: AsyncSession, 
+    restaurant: Restaurant,
+):
+    await db.delete(restaurant)
+    await db.commit()

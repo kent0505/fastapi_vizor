@@ -1,7 +1,7 @@
 from aiogram import Bot, Dispatcher, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message
-from core.settings import settings
+from core.config import settings
 
 import logging
 import asyncio

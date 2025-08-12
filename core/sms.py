@@ -1,5 +1,5 @@
 from twilio.rest import Client
-from core.settings import settings
+from core.config import settings
 
 import logging
 

@@ -1,28 +1,21 @@
-from fastapi             import FastAPI
-from fastapi.staticfiles import StaticFiles
-from contextlib          import asynccontextmanager
-from core.bot            import start_bot
-from core.settings       import settings
-from routers.home        import router as home_router
-from routers.auth        import router as auth_router
-from routers.client      import router as client_router
-from routers.user        import router as user_router
-from routers.admin       import router as admin_router
-from routers.photo       import router as photo_router
-from routers.city        import router as city_router
-from routers.restaurant  import router as restaurant_router
-from routers.panorama    import router as panorama_router
-from routers.hotspots    import router as hotspots_router
-from routers.menu        import router as menu_router
-from db                  import (
-    get_db,
-    user,
-    city,
-    restaurant,
-    panorama,
-    hotspot,
-    menu,
-)
+from fastapi                 import FastAPI
+# from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles     import StaticFiles
+from contextlib              import asynccontextmanager
+from core.bot                import start_bot
+from core.config             import settings
+from db                      import Base, db_helper
+from routers.home            import router as home_router
+from routers.auth            import router as auth_router
+from routers.client          import router as client_router
+from routers.user            import router as user_router
+from routers.admin           import router as admin_router
+from routers.photo           import router as photo_router
+from routers.city            import router as city_router
+from routers.restaurant      import router as restaurant_router
+# from routers.panorama        import router as panorama_router
+# from routers.hotspots        import router as hotspots_router
+# from routers.menu            import router as menu_router
 
 import logging
 import asyncio
@@ -32,21 +25,24 @@ import uvicorn
 async def lifespan(_: FastAPI):
     logging.basicConfig(level=logging.INFO)
     bot_task = asyncio.create_task(start_bot())
-    async with get_db() as db:
-        await db.execute(user.User.CREATE)
-        await db.execute(city.City.CREATE)
-        await db.execute(restaurant.Restaurant.CREATE)
-        # await db.execute(panorama.Panorama.CREATE)
-        # await db.execute(hotspot.Hotspot.CREATE)
-        # await db.execute(menu.Menu.CREATE)
-        await db.commit()
+    async with db_helper.engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
     yield
+    await db_helper.dispose()
     bot_task.cancel()
 
 app = FastAPI(
     lifespan=lifespan,
     swagger_ui_parameters=settings.swagger,
 )
+
+# app.add_middleware(
+#     middleware_class  = CORSMiddleware, 
+#     allow_origins     = ["*"], 
+#     allow_methods     = ["*"], 
+#     allow_headers     = ["*"],
+#     allow_credentials = True, 
+# )
 
 app.mount(path="/static",    app=StaticFiles(directory="static"),    name="static")
 app.mount(path="/templates", app=StaticFiles(directory="templates"), name="templates")
@@ -65,6 +61,7 @@ if __name__ == "__main__":
         app="main:app", 
         host="0.0.0.0",
         port=8000,
+        reload=True,
     )
 
 # app.include_router(panorama_router,   prefix="/api/v1/panorama",   tags=["Panorama"])
