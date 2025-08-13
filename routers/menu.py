@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from db import BaseModel, SessionDep
+from db import SessionDep, BaseModel
 
 router = APIRouter()
 

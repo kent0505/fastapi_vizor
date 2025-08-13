@@ -32,6 +32,6 @@ async def db_add_panorama(
 async def db_delete_panorama(
     db: AsyncSession, 
     panorama: Panorama,
-):
+) -> None:
     await db.delete(panorama)
     await db.commit()

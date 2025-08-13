@@ -24,11 +24,11 @@ import uvicorn
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     logging.basicConfig(level=logging.INFO)
-    bot_task = asyncio.create_task(start_bot())
     await create_all()
+    bot_task = asyncio.create_task(start_bot())
     yield
-    await dispose_db()
     bot_task.cancel()
+    await dispose_db()
 
 app = FastAPI(
     lifespan=lifespan,

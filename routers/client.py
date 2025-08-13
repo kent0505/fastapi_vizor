@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
-from db import BaseModel, SessionDep
+from fastapi import APIRouter, HTTPException
+from db import SessionDep, BaseModel
 from db.city import db_get_cities, db_get_city_by_id
 from db.restaurant import db_get_restaurants_by_city
 

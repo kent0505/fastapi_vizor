@@ -1,7 +1,9 @@
 from aiogram import Bot, Dispatcher, Router
 from aiogram.filters import CommandStart
-from aiogram.types import Message
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from core.config import settings
+from db import db_helper
+from db.user import db_get_user_by_phone
 
 import logging
 import asyncio
@@ -20,7 +22,34 @@ async def start_bot():
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
-    await message.answer(text=str(message.chat.id))
+    keyboard = ReplyKeyboardMarkup(
+        resize_keyboard=True,
+        one_time_keyboard=True,
+        keyboard=[
+            [
+                KeyboardButton(
+                    text="📱 Send my contact",
+                    request_contact=True,
+                )
+            ]
+        ]
+    )
+
+    await message.answer(
+        text="Send contact",
+        reply_markup=keyboard,
+    )
+
+@router.message()
+async def handle_contact(message: Message):
+    contact = message.contact
+    if contact.user_id == message.from_user.id:
+        print(f"user phone: {message.contact.phone_number}")
+        # async with db_helper.session() as db:
+        #     row = await db_get_user_by_phone(db, f"+{message.contact.phone_number}")
+        #     if row
+    else:
+        print(f"error: {message.contact.phone_number}")
 
 # @asynccontextmanager
 # async def lifespan(app: FastAPI):

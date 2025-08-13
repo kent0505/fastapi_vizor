@@ -46,6 +46,6 @@ async def db_add_restaurant(
 async def db_delete_restaurant(
     db: AsyncSession, 
     restaurant: Restaurant,
-):
+) -> None:
     await db.delete(restaurant)
     await db.commit()

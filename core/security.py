@@ -39,7 +39,7 @@ class JWTBearer(HTTPBearer):
         token: HTTPAuthorizationCredentials = await super().__call__(request)
 
         if token.scheme != "Bearer":
-            raise HTTPException(403, "Invalid authentication scheme.")
+            raise HTTPException(403, "invalid authentication scheme")
 
         try:
             payload: dict = jwt.decode(
@@ -48,11 +48,11 @@ class JWTBearer(HTTPBearer):
                 algorithms=["HS256"],
             )
         except ExpiredSignatureError:
-            raise HTTPException(403, "Token has expired.")
+            raise HTTPException(403, "token has expired")
         except InvalidTokenError:
-            raise HTTPException(403, "Invalid token.")
+            raise HTTPException(403, "invalid token")
         except:
-            raise HTTPException(403, "Invalid error.")
+            raise HTTPException(403, "auth error")
 
         if self.role == Roles.user:
             allowed_roles = [Roles.user, Roles.stuff, Roles.admin]
@@ -60,9 +60,9 @@ class JWTBearer(HTTPBearer):
             allowed_roles = [self.role, Roles.admin]
 
         if payload.get("role") not in allowed_roles:
-            raise HTTPException(403, "Access denied for this role.")
+            raise HTTPException(403, "access denied for this role")
 
         if payload.get("version") != settings.version:
-            raise HTTPException(403, "Token version mismatch.")
+            raise HTTPException(403, "token version mismatch")
 
         return token.credentials

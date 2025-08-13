@@ -44,6 +44,6 @@ async def db_add_user(
 async def db_delete_user(
     db: AsyncSession, 
     user: User,
-):
+) -> None:
     await db.delete(user)
     await db.commit()

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
 from core.security import Roles
-from db import BaseModel, SessionDep
+from db import SessionDep, BaseModel
 from db.user import (
     User,
     db_get_users,
@@ -17,7 +17,6 @@ class UserSchema(BaseModel):
     phone: str
     name: str
     age: str
-    fcm: str
 
 @router.get("/")
 async def get_users(db: SessionDep):
@@ -47,18 +46,20 @@ async def add_admin(
 
 @router.put("/")
 async def edit_admin(
-    id: int,
     body: UserSchema,
     role: Roles,
     db: SessionDep,
 ):
-    row = await db_get_user_by_id(db, id)
+    row = await db_get_user_by_phone(db, body.phone)
     if not row:
         raise HTTPException(404, "user not found")
+    
+    if row.phone == body.phone:
+        raise HTTPException(409, "phone already exists")
 
+    row.phone=body.phone
     row.name=body.name
     row.age=body.age
-    row.fcm=body.fcm
     row.role=role.value
     await db.commit()
 

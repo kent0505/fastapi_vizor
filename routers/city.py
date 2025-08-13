@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
-from db import BaseModel, SessionDep
+from db import SessionDep, BaseModel
 from db.city import (
     City,
     db_get_city_by_id,

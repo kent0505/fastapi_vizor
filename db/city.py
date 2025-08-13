@@ -31,6 +31,6 @@ async def db_add_city(
 async def db_delete_city(
     db: AsyncSession, 
     city: City,
-):
+) -> None:
     await db.delete(city)
     await db.commit()

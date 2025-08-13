@@ -4,7 +4,7 @@ from core.security import Roles, signJWT
 from core.config import settings
 from core.sms import send_sms
 from core.utils import get_timestamp, generate_code
-from db import BaseModel, SessionDep
+from db import SessionDep, BaseModel
 from db.user import (
     User,
     db_get_user_by_phone,

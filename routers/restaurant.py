@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
 from core.s3 import delete_object
-from db import BaseModel, SessionDep
+from db import SessionDep, BaseModel
 from db.city import db_get_city_by_id
 from db.restaurant import (
     Restaurant,
