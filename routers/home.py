@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 from core.security import Roles
-from db import AsyncSession, db_helper
+from db import SessionDep
 from db.user import (
     User,
     db_add_user,
@@ -14,7 +14,7 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/")
 async def home(
     request: Request,
-    db: AsyncSession = Depends(db_helper.get_db),
+    db: SessionDep,
 ):
     users = await db_get_users(db)
     # cities = await db_get_cities()

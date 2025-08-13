@@ -1,17 +1,11 @@
 from db import (
     Base, 
     Mapped, 
-    BaseModel,
     AsyncSession,
     List,
-    Optional,
     select,
     mapped_column,
 )
-
-class CityBody(BaseModel):
-    id: Optional[int] = None
-    name: str
 
 class City(Base):
     name: Mapped[str] = mapped_column(unique=True)

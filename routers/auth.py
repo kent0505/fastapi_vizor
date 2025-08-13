@@ -1,28 +1,35 @@
-from fastapi import APIRouter, HTTPException, Body, Depends
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 from core.security import Roles, signJWT
 from core.config import settings
 from core.sms import send_sms
 from core.utils import get_timestamp, generate_code
-from db import AsyncSession, db_helper
+from db import BaseModel, SessionDep
 from db.user import (
     User,
-    LoginBody,
     db_get_user_by_phone,
     db_add_user,
 )
 
 router = APIRouter()
 
+class PhoneSchema(BaseModel):
+    phone: str
+
+class LoginSchema(BaseModel):
+    phone: str
+    code: str
+
 @router.post("/send_code")
 async def send_code(
-    phone: str = Body,
-    db: AsyncSession = Depends(db_helper.get_db),
+    body: PhoneSchema,
+    db: SessionDep,
 ):
     code = str(generate_code())
 
-    await send_sms(code, phone)
+    await send_sms(code, body.phone)
 
-    row = await db_get_user_by_phone(db, phone)
+    row = await db_get_user_by_phone(db, body.phone)
 
     if row:
         row.code = code
@@ -31,7 +38,7 @@ async def send_code(
         await db_add_user(
             db,
             user=User(
-                phone=phone,
+                phone=body.phone,
                 code=code,
                 role=Roles.user,
             )
@@ -41,8 +48,8 @@ async def send_code(
 
 @router.post("/login")
 async def login(
-    body: LoginBody,
-    db: AsyncSession = Depends(db_helper.get_db),
+    body: LoginSchema,
+    db: SessionDep,
 ):
     row = await db_get_user_by_phone(db, body.phone)
     if not row:

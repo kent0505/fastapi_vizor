@@ -1,24 +1,11 @@
 from db import (
     Base, 
     Mapped, 
-    BaseModel,
     AsyncSession,
     List,
-    Optional,
     select,
     mapped_column,
 )
-
-class RestaurantBody(BaseModel):
-    id: Optional[int] = None
-    title: Optional[str] = None
-    phone: Optional[str] = None
-    address: Optional[str] = None
-    latlon: Optional[str] = None
-    hours: Optional[str] = None
-    position: Optional[int] = None
-    city: Optional[int] = None
-    status: Optional[int] = None
 
 class Restaurant(Base):
     title: Mapped[str] = mapped_column()

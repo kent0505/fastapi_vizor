@@ -1,18 +1,11 @@
 from db import (
     Base, 
     Mapped, 
-    BaseModel,
     AsyncSession,
     List,
-    Optional,
     select,
     mapped_column,
 )
-
-class PanoramaBody(BaseModel):
-    id: Optional[int] = None
-    rid: int
-    photo: str
 
 class Panorama(Base):
     rid: Mapped[int] = mapped_column()

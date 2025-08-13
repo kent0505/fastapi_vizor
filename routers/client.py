@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from db import AsyncSession, db_helper
+from db import BaseModel, SessionDep
 from db.city import db_get_cities, db_get_city_by_id
 from db.restaurant import db_get_restaurants_by_city
 
@@ -7,7 +7,7 @@ router = APIRouter()
 
 @router.get("/cities")
 async def get_cities(
-    db: AsyncSession = Depends(db_helper.get_db),
+    db: SessionDep,
 ):
     cities = await db_get_cities(db)
 
@@ -16,7 +16,7 @@ async def get_cities(
 @router.get("/restaurants")
 async def get_restaurants(
     city: int,
-    db: AsyncSession = Depends(db_helper.get_db),
+    db: SessionDep,
 ):
     row = await db_get_city_by_id(db, city)
     if not row:

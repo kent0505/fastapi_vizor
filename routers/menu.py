@@ -1,6 +1,14 @@
 from fastapi import APIRouter
+from db import BaseModel, SessionDep
 
 router = APIRouter()
+
+class Menu(BaseModel):
+    title: str
+    description: str
+    category: str
+    price: str
+    rid: int
 
 # @router.post("/")
 # async def add_menu(body: Menu):

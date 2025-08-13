@@ -1,10 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
 from core.security import Roles
-from db import AsyncSession, db_helper
+from db import BaseModel, SessionDep
 from db.user import (
     User,
-    UserBody,
     db_get_users,
     db_get_user_by_id,
     db_get_user_by_phone,
@@ -14,19 +13,23 @@ from db.user import (
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
+class UserSchema(BaseModel):
+    phone: str
+    name: str
+    age: str
+    fcm: str
+
 @router.get("/")
-async def get_users(
-    db: AsyncSession = Depends(db_helper.get_db),
-):
+async def get_users(db: SessionDep):
     rows = await db_get_users(db)
 
     return {"users": rows}
 
 @router.post("/")
 async def add_admin(
-    body: UserBody, 
+    body: UserSchema, 
     role: Roles,
-    db: AsyncSession = Depends(db_helper.get_db),
+    db: SessionDep,
 ):
     row = await db_get_user_by_phone(db, body.phone)
     if row:
@@ -44,11 +47,12 @@ async def add_admin(
 
 @router.put("/")
 async def edit_admin(
-    body: UserBody,
+    id: int,
+    body: UserSchema,
     role: Roles,
-    db: AsyncSession = Depends(db_helper.get_db),
+    db: SessionDep,
 ):
-    row = await db_get_user_by_id(db, body.id)
+    row = await db_get_user_by_id(db, id)
     if not row:
         raise HTTPException(404, "user not found")
 
@@ -63,7 +67,7 @@ async def edit_admin(
 @router.delete("/")
 async def delete_admin(
     id: int,
-    db: AsyncSession = Depends(db_helper.get_db),
+    db: SessionDep,
 ):
     row = await db_get_user_by_id(db, id)
     if not row:

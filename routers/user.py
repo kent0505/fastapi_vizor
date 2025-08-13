@@ -2,18 +2,21 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.security import Roles
 from core.s3 import put_object
-from db import AsyncSession, db_helper
-from db.user import (
-    UserBody,
-    db_get_user_by_id,
-)
+from db import BaseModel, SessionDep
+from db.user import db_get_user_by_id
 
 router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.user))])
 
+class UserSchema(BaseModel):
+    id: int
+    name: str
+    age: str
+    fcm: str
+
 @router.put("/")
 async def edit_user(
-    body: UserBody,
-    db: AsyncSession = Depends(db_helper.get_db),
+    body: UserSchema,
+    db: SessionDep,
 ):
     row = await db_get_user_by_id(db, body.id)
     if not row:
@@ -29,8 +32,8 @@ async def edit_user(
 @router.post("/")
 async def add_user_photo(
     id: int, 
+    db: SessionDep,
     file: UploadFile = File(),
-    db: AsyncSession = Depends(db_helper.get_db),
 ):
     row = await db_get_user_by_id(db, id)
     if not row:

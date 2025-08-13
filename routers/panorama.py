@@ -1,6 +1,11 @@
 from fastapi import APIRouter
+from db import BaseModel, SessionDep
 
 router = APIRouter()
+
+class PanoramaBody(BaseModel):
+    rid: int
+    photo: str
 
 # @router.post("/")
 # async def add_panorama(rid: int, file: UploadFile = File()):

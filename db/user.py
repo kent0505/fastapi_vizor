@@ -1,24 +1,11 @@
 from db import (
     Base, 
     Mapped, 
-    BaseModel,
     AsyncSession,
     List,
-    Optional,
     select,
     mapped_column,
 )
-
-class LoginBody(BaseModel):
-    phone: str
-    code: str
-
-class UserBody(BaseModel):
-    id: Optional[int] = None
-    phone: Optional[str] = None
-    name: Optional[str] = None
-    age: Optional[str] = None
-    fcm: Optional[str] = None
 
 class User(Base):
     phone: Mapped[str] = mapped_column(unique=True)

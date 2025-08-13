@@ -1,10 +1,10 @@
 from fastapi                 import FastAPI
-# from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles     import StaticFiles
 from contextlib              import asynccontextmanager
 from core.bot                import start_bot
 from core.config             import settings
-from db                      import Base, db_helper
+from db                      import create_all, dispose_db
 from routers.home            import router as home_router
 from routers.auth            import router as auth_router
 from routers.client          import router as client_router
@@ -25,10 +25,9 @@ import uvicorn
 async def lifespan(_: FastAPI):
     logging.basicConfig(level=logging.INFO)
     bot_task = asyncio.create_task(start_bot())
-    async with db_helper.engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    await create_all()
     yield
-    await db_helper.dispose()
+    await dispose_db()
     bot_task.cancel()
 
 app = FastAPI(
@@ -36,13 +35,13 @@ app = FastAPI(
     swagger_ui_parameters=settings.swagger,
 )
 
-# app.add_middleware(
-#     middleware_class  = CORSMiddleware, 
-#     allow_origins     = ["*"], 
-#     allow_methods     = ["*"], 
-#     allow_headers     = ["*"],
-#     allow_credentials = True, 
-# )
+app.add_middleware(
+    middleware_class  = CORSMiddleware, 
+    allow_origins     = ["*"], 
+    allow_methods     = ["*"], 
+    allow_headers     = ["*"],
+    allow_credentials = True, 
+)
 
 app.mount(path="/static",    app=StaticFiles(directory="static"),    name="static")
 app.mount(path="/templates", app=StaticFiles(directory="templates"), name="templates")

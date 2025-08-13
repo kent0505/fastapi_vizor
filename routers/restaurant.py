@@ -1,11 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
 from core.s3 import delete_object
-from db import AsyncSession, db_helper
+from db import BaseModel, SessionDep
 from db.city import db_get_city_by_id
 from db.restaurant import (
     Restaurant,
-    RestaurantBody,
     db_get_restaurant_by_id,
     db_add_restaurant,
     db_delete_restaurant,
@@ -13,10 +12,20 @@ from db.restaurant import (
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
+class RestaurantSchema(BaseModel):
+    title: str
+    phone: str
+    address: str
+    latlon: str
+    hours: str
+    position: int
+    city: int
+    status: int
+
 @router.post("/")
 async def add_restaurant(
-    body: RestaurantBody,
-    db: AsyncSession = Depends(db_helper.get_db),
+    body: RestaurantSchema,
+    db: SessionDep,
 ):
     row = await db_get_city_by_id(db, body.city)
     if not row:
@@ -38,10 +47,11 @@ async def add_restaurant(
 
 @router.put("/")
 async def edit_restaurant(
-    body: RestaurantBody,
-    db: AsyncSession = Depends(db_helper.get_db),
+    id: int,
+    body: RestaurantSchema,
+    db: SessionDep,
 ):
-    restaurant = await db_get_restaurant_by_id(db, body.id)
+    restaurant = await db_get_restaurant_by_id(db, id)
     if not restaurant:
         raise HTTPException(404, "restaurant not found")
     
@@ -64,7 +74,7 @@ async def edit_restaurant(
 @router.delete("/")
 async def delete_restaurant(
     id: int,
-    db: AsyncSession = Depends(db_helper.get_db),
+    db: SessionDep,
 ):
     row = await db_get_restaurant_by_id(db, id)
     if not row:

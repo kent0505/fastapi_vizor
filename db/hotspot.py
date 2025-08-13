@@ -3,12 +3,6 @@ from db import (
     Optional,
 )
 
-class Hotspot(BaseModel):
-    id: Optional[int] = None
-    number: int
-    latlon: str
-    pid: int
-
 # async def db_add_hotspot(hotspot: Hotspot) -> None:
 #     async with get_db() as db:
 #         await db.execute("""

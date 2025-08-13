@@ -1,6 +1,12 @@
 from fastapi import APIRouter
+from db import BaseModel, SessionDep
 
 router = APIRouter()
+
+class Hotspot(BaseModel):
+    number: int
+    latlon: str
+    pid: int
 
 # @router.post("/")
 # async def add_hotspot(body: Hotspot):

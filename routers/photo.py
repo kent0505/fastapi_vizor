@@ -2,15 +2,15 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.s3 import put_object, delete_object
 from db.restaurant import db_get_restaurant_by_id
-from db import AsyncSession, db_helper
+from db import SessionDep
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
 @router.post("/restaurant")
 async def add_restaurant_photo(
     id: int, 
+    db: SessionDep,
     file: UploadFile = File(),
-    db: AsyncSession = Depends(db_helper.get_db),
 ):
     row = await db_get_restaurant_by_id(db, id)
     if not row:
