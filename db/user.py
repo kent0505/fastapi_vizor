@@ -33,17 +33,3 @@ async def db_get_user_by_phone(
 ) -> User | None:
     user = await db.scalar(select(User).filter_by(phone=phone))
     return user
-
-async def db_add_user(
-    db: AsyncSession, 
-    user: User,
-) -> None:
-    db.add(user)
-    await db.commit()
-
-async def db_delete_user(
-    db: AsyncSession, 
-    user: User,
-) -> None:
-    await db.delete(user)
-    await db.commit()

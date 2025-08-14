@@ -4,12 +4,7 @@ from core.utils import get_timestamp
 from core.s3 import put_object, delete_object
 from db import SessionDep, BaseModel
 from db.restaurant import db_get_restaurant_by_id
-from db.panorama import (
-    Panorama, 
-    db_get_panorama_by_id, 
-    db_add_panorama,
-    db_delete_panorama,
-)
+from db.panorama import Panorama, db_get_panorama_by_id
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
@@ -23,8 +18,8 @@ async def add_panorama(
     db: SessionDep,
     file: UploadFile = File(),
 ):
-    row = await db_get_restaurant_by_id(db, rid)
-    if not row:
+    restaurant = await db_get_restaurant_by_id(db, rid)
+    if not restaurant:
         raise HTTPException(404, "restaurant not found")
 
     key = f"panoramas/{get_timestamp()}"
@@ -35,21 +30,45 @@ async def add_panorama(
         rid=rid,
         photo=photo,
     )
-    await db_add_panorama(db, panorama)
+    db.add(panorama)
+    await db.commit()
 
     return {"message": "panorama added"}
+
+@router.patch("/")
+async def edit_panorama_photo(
+    id: int, 
+    db: SessionDep,
+    file: UploadFile = File(),
+):
+    panorama = await db_get_panorama_by_id(db, id)
+    if not panorama:
+        raise HTTPException(404, "panorama not found")
+
+    key = f"panoramas/{id}"
+
+    photo = await put_object(key, file)
+
+    panorama.photo = photo
+    await db.commit()
+
+    return {
+        "message": "panorama photo added",
+        "photo": photo,
+    }
 
 @router.delete("/")
 async def delete_panorama(
     id: int,
     db: SessionDep,
 ):
-    row = await db_get_panorama_by_id(db, id)
-    if not row:
+    panorama = await db_get_panorama_by_id(db, id)
+    if not panorama:
         raise HTTPException(404, "panorama not found")
 
-    await delete_object(row.photo)
+    await delete_object(panorama.photo)
 
-    await db_delete_panorama(db, row)
+    await db.delete(panorama)
+    await db.commit()
 
     return {"message": "panorama deleted"}

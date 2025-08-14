@@ -1,62 +1,107 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
+from core.security import JWTBearer
+from core.s3 import put_object, delete_object
 from db import SessionDep, BaseModel
+from db.restaurant import db_get_restaurant_by_id
+from db.category import db_get_category_by_id
+from db.menu import Menu, db_get_menu_by_id
 
-router = APIRouter()
+router = APIRouter(dependencies=[Depends(JWTBearer())])
 
 class Menu(BaseModel):
     title: str
     description: str
-    category: str
     price: str
+    currency: str
+    cid: int
     rid: int
 
-# @router.post("/")
-# async def add_menu(body: Menu):
-#     row = await db_get_by_id(Restaurant, Tables.restaurants, body.rid)
-#     if not row:
-#         raise HTTPException(404, "restaurant not found")
+@router.post("/")
+async def add_menu(
+    body: Menu,
+    db: SessionDep,
+):
+    restaurant = await db_get_restaurant_by_id(body.rid)
+    if not restaurant:
+        raise HTTPException(404, "restaurant not found")
 
-#     await db_add_menu(body)
+    category = await db_get_category_by_id(body.cid)
+    if not category:
+        raise HTTPException(404, "category not found")
 
-#     return {"message": "menu added"}
+    menu = Menu(
+        title=body.title,
+        description=body.description,
+        price=body.price,
+        currency=body.currency,
+        cid=body.cid,
+        rid=body.rid,
+    )
+    db.add(menu)
+    await db.commit()
 
-# @router.put("/")
-# async def edit_menu(body: Menu):
-#     row = await db_get_by_id(Menu, Tables.menus, body.id)
-#     if not row:
-#         raise HTTPException(404, "menu not found")
+    return {"message": "menu added"}
 
-#     await db_update_menu(body)
+@router.put("/")
+async def edit_menu(
+    id: int,
+    body: Menu,
+    db: SessionDep,
+):
+    menu = await db_get_menu_by_id(db, id)
+    if not menu:
+        raise HTTPException(404, "menu not found")
 
-#     return {"message": "menu updated"}
+    restaurant = await db_get_restaurant_by_id(body.rid)
+    if not restaurant:
+        raise HTTPException(404, "restaurant not found")
 
-# @router.patch("/")
-# async def edit_menu_photo(id: int, file: UploadFile = File()):
-#     row = await db_get_by_id(Menu, Tables.menus, id)
-#     if not row:
-#         raise HTTPException(404, "menu not found")
-    
-#     format = get_format(str(file.filename))
-#     if format not in settings.image_formats:
-#         raise HTTPException(400, 'file error')
+    category = await db_get_category_by_id(body.cid)
+    if not category:
+        raise HTTPException(404, "category not found")
 
-#     key = f"menus/{id}.{format}"
+    menu.title=body.title,
+    menu.description=body.description,
+    menu.price=body.price,
+    menu.currency=body.currency,
+    menu.cid=body.cid,
+    menu.rid=body.rid,
+    await db.commit()
 
-#     await delete_object(f"menus/{id}.{get_format(row.photo)}")
-#     await put_object(key, file)
+    return {"message": "menu updated"}
 
-#     await db_update_photo(Tables.menus, key, id)
+@router.patch("/")
+async def edit_menu_photo(
+    id: int, 
+    db: SessionDep,
+    file: UploadFile = File(),
+):
+    menu = await db_get_menu_by_id(db, id)
+    if not menu:
+        raise HTTPException(404, "menu not found")
 
-#     return {"message": "menu photo updated"}
+    key = f"menus/{id}"
 
-# @router.delete("/")
-# async def delete_menu(id: int):
-#     row = await db_get_by_id(Menu, Tables.menus, id)
-#     if not row:
-#         raise HTTPException(404, "menu not found")
-    
-#     await delete_object(f"menus/{id}.{get_format(row.photo)}")
-    
-#     await db_delete(Tables.menus, id)
-    
-#     return {"message": "menu deleted"}
+    photo =  await put_object(key, file)
+
+    menu.photo = photo
+    await db.commit()
+
+    return {"message": "menu photo updated"}
+
+@router.delete("/")
+async def delete_menu(
+    id: int,
+    db: SessionDep,
+):
+    menu = await db_get_menu_by_id(db, id)
+    if not menu:
+        raise HTTPException(404, "menu not found")
+
+    key = f"menus/{menu.id}"
+    await delete_object(key)
+
+    await db.delete(menu)
+    await db.commit()
+
+    return {"message": "menu deleted"}

@@ -2,12 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
 from db import SessionDep, BaseModel
 from db.panorama import db_get_panorama_by_id
-from db.hotspot import (
-    Hotspot,
-    db_get_hotspot_by_id,
-    db_add_hotspot,
-    db_delete_hotspot,
-)
+from db.hotspot import Hotspot, db_get_hotspot_by_id
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
@@ -21,8 +16,8 @@ async def add_hotspot(
     body: HotspotSchema,
     db: SessionDep,
 ):
-    row = await db_get_panorama_by_id(db, body.pid)
-    if not row:
+    panorama = await db_get_panorama_by_id(db, body.pid)
+    if not panorama:
         raise HTTPException(404, "panorama not found")
 
     hotspot = Hotspot(
@@ -30,7 +25,8 @@ async def add_hotspot(
         latlon=body.latlon,
         pid=body.pid
     )
-    await db_add_hotspot(db, hotspot)
+    db.add(hotspot)
+    await db.commit()
 
     return {"message": "hotspot added"}
 
@@ -60,10 +56,11 @@ async def delete_hotspot(
     id: int,
     db: SessionDep,
 ):
-    row = await db_get_hotspot_by_id(db, id)
-    if not row:
+    hotspot = await db_get_hotspot_by_id(db, id)
+    if not hotspot:
         raise HTTPException(404, "hotspot not found")
 
-    await db_delete_hotspot(db, id)
+    await db.delete(hotspot)
+    await db.commit()
 
     return {"message": "hotspot deleted"}

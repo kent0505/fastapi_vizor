@@ -7,8 +7,6 @@ from db.user import (
     db_get_users,
     db_get_user_by_id,
     db_get_user_by_phone,
-    db_add_user,
-    db_delete_user,
 )
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
@@ -20,9 +18,9 @@ class UserSchema(BaseModel):
 
 @router.get("/")
 async def get_users(db: SessionDep):
-    rows = await db_get_users(db)
+    users = await db_get_users(db)
 
-    return {"users": rows}
+    return {"users": users}
 
 @router.post("/")
 async def add_admin(
@@ -30,8 +28,8 @@ async def add_admin(
     role: Roles,
     db: SessionDep,
 ):
-    row = await db_get_user_by_phone(db, body.phone)
-    if row:
+    user = await db_get_user_by_phone(db, body.phone)
+    if user:
         raise HTTPException(409, "user already exists")
 
     user = User(
@@ -40,7 +38,8 @@ async def add_admin(
         age=body.age,
         role=role.value,
     )
-    await db_add_user(db, user)
+    db.add(user)
+    await db.commit()
 
     return {"message": f"{role.value} registered"}
 
@@ -50,17 +49,17 @@ async def edit_admin(
     role: Roles,
     db: SessionDep,
 ):
-    row = await db_get_user_by_phone(db, body.phone)
-    if not row:
+    user = await db_get_user_by_phone(db, body.phone)
+    if not user:
         raise HTTPException(404, "user not found")
     
-    if row.phone == body.phone:
+    if user.phone == body.phone:
         raise HTTPException(409, "phone already exists")
 
-    row.phone=body.phone
-    row.name=body.name
-    row.age=body.age
-    row.role=role.value
+    user.phone=body.phone
+    user.name=body.name
+    user.age=body.age
+    user.role=role.value
     await db.commit()
 
     return {"message": "user updated"}
@@ -70,10 +69,11 @@ async def delete_admin(
     id: int,
     db: SessionDep,
 ):
-    row = await db_get_user_by_id(db, id)
-    if not row:
+    user = await db_get_user_by_id(db, id)
+    if not user:
         raise HTTPException(404, "user not found")
 
-    await db_delete_user(db, row)
+    await db.delete(user)
+    await db.commit()
 
     return {"message": "user deleted"}

@@ -2,11 +2,7 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from core.security import Roles
 from db import SessionDep
-from db.user import (
-    User,
-    db_add_user,
-    db_get_users,
-)
+from db.user import User, db_get_users
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -21,15 +17,15 @@ async def home(
     # restaurants = await db_get_restaurants()
 
     if not users:
-        await db_add_user(
-            db,
-            user=User(
-                name="Otabek",
-                phone="+998998472580",
-                age=25,
-                role=Roles.admin,
-            ),
+        user = User(
+            name="Otabek",
+            phone="+998998472580",
+            age=25,
+            role=Roles.admin,
         )
+        db.add(user)
+        await db.commit()
+
         users = await db_get_users(db)
 
     return templates.TemplateResponse(

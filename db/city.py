@@ -20,17 +20,3 @@ async def db_get_city_by_id(
 ) -> City | None:
     city = await db.scalar(select(City).filter_by(id=id))
     return city
-
-async def db_add_city(
-    db: AsyncSession, 
-    city: City,
-) -> None:
-    db.add(city)
-    await db.commit()
-
-async def db_delete_city(
-    db: AsyncSession, 
-    city: City,
-) -> None:
-    await db.delete(city)
-    await db.commit()

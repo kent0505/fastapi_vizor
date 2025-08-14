@@ -13,8 +13,9 @@ from routers.admin           import router as admin_router
 from routers.city            import router as city_router
 from routers.restaurant      import router as restaurant_router
 from routers.panorama        import router as panorama_router
-from routers.hotspots        import router as hotspots_router
-# from routers.menu            import router as menu_router
+from routers.hotspot         import router as hotspot_router
+from routers.category        import router as category_router
+from routers.menu            import router as menu_router
 
 import logging
 import asyncio
@@ -53,7 +54,9 @@ app.include_router(admin_router,      prefix="/api/v1/admin",      tags=["Admin"
 app.include_router(city_router,       prefix="/api/v1/city",       tags=["City"])
 app.include_router(restaurant_router, prefix="/api/v1/restaurant", tags=["Restaurant"])
 app.include_router(panorama_router,   prefix="/api/v1/panorama",   tags=["Panorama"])
-app.include_router(hotspots_router,   prefix="/api/v1/hotspot",    tags=["Hotspot"])
+app.include_router(hotspot_router,    prefix="/api/v1/hotspot",    tags=["Hotspot"])
+app.include_router(category_router,   prefix="/api/v1/category",   tags=["Category"])
+app.include_router(menu_router,       prefix="/api/v1/menu",       tags=["Menu"])
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -18,13 +18,13 @@ async def edit_user(
     body: UserSchema,
     db: SessionDep,
 ):
-    row = await db_get_user_by_id(db, body.id)
-    if not row:
+    user = await db_get_user_by_id(db, body.id)
+    if not user:
         raise HTTPException(404, "user not found")
     
-    row.name = body.name
-    row.age = body.age
-    row.fcm = body.fcm
+    user.name = body.name
+    user.age = body.age
+    user.fcm = body.fcm
     await db.commit()
 
     return {"message": "user updated"}
@@ -35,15 +35,15 @@ async def add_user_photo(
     db: SessionDep,
     file: UploadFile = File(),
 ):
-    row = await db_get_user_by_id(db, id)
-    if not row:
+    user = await db_get_user_by_id(db, id)
+    if not user:
         raise HTTPException(404, "user not found")
     
     key = f"users/{id}"
 
     photo = await put_object(key, file)
     
-    row.photo = photo
+    user.photo = photo
     await db.commit()
 
     return {
