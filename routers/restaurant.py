@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
-from core.s3 import delete_object
+from core.s3 import put_object, delete_object
 from db import SessionDep, BaseModel
 from db.city import db_get_city_by_id
 from db.restaurant import (
@@ -70,6 +70,28 @@ async def edit_restaurant(
     await db.commit()
 
     return {"message": "restaurant updated"}
+
+@router.patch("/restaurant")
+async def add_restaurant_photo(
+    id: int, 
+    db: SessionDep,
+    file: UploadFile = File(),
+):
+    row = await db_get_restaurant_by_id(db, id)
+    if not row:
+        raise HTTPException(404, "restaurant not found")
+    
+    key = f"restaurants/{id}"
+
+    photo = await put_object(key, file)
+
+    row.photo = photo
+    await db.commit()
+
+    return {
+        "message": "restaurant photo added",
+        "photo": photo,
+    }
 
 @router.delete("/")
 async def delete_restaurant(

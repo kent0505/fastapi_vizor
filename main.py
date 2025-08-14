@@ -10,11 +10,10 @@ from routers.auth            import router as auth_router
 from routers.client          import router as client_router
 from routers.user            import router as user_router
 from routers.admin           import router as admin_router
-from routers.photo           import router as photo_router
 from routers.city            import router as city_router
 from routers.restaurant      import router as restaurant_router
-# from routers.panorama        import router as panorama_router
-# from routers.hotspots        import router as hotspots_router
+from routers.panorama        import router as panorama_router
+from routers.hotspots        import router as hotspots_router
 # from routers.menu            import router as menu_router
 
 import logging
@@ -25,9 +24,9 @@ import uvicorn
 async def lifespan(_: FastAPI):
     logging.basicConfig(level=logging.INFO)
     await create_all()
-    bot_task = asyncio.create_task(start_bot())
+    # bot_task = asyncio.create_task(start_bot())
     yield
-    bot_task.cancel()
+    # bot_task.cancel()
     await dispose_db()
 
 app = FastAPI(
@@ -51,9 +50,10 @@ app.include_router(auth_router,       prefix="/api/v1/auth",       tags=["Auth"]
 app.include_router(client_router,     prefix="/api/v1/client",     tags=["Client"])
 app.include_router(user_router,       prefix="/api/v1/user",       tags=["User"])
 app.include_router(admin_router,      prefix="/api/v1/admin",      tags=["Admin"])
-app.include_router(photo_router,      prefix="/api/v1/photo",      tags=["Photo"])
 app.include_router(city_router,       prefix="/api/v1/city",       tags=["City"])
 app.include_router(restaurant_router, prefix="/api/v1/restaurant", tags=["Restaurant"])
+app.include_router(panorama_router,   prefix="/api/v1/panorama",   tags=["Panorama"])
+app.include_router(hotspots_router,   prefix="/api/v1/hotspot",    tags=["Hotspot"])
 
 if __name__ == "__main__":
     uvicorn.run(
@@ -63,8 +63,6 @@ if __name__ == "__main__":
         reload=True,
     )
 
-# app.include_router(panorama_router,   prefix="/api/v1/panorama",   tags=["Panorama"])
-# app.include_router(hotspots_router,   prefix="/api/v1/hotspot",    tags=["Hotspot"])
 # app.include_router(menu_router,       prefix="/api/v1/menu",       tags=["Menu"])
 
 # pip install -r requirements.txt
