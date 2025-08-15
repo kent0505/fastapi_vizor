@@ -1,6 +1,7 @@
 from fastapi                 import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles     import StaticFiles
+from faststream.rabbit.fastapi import RabbitRouter
 from contextlib              import asynccontextmanager
 from core.bot                import start_bot
 from core.config             import settings
@@ -25,9 +26,9 @@ import uvicorn
 async def lifespan(_: FastAPI):
     logging.basicConfig(level=logging.INFO)
     await create_all()
-    # bot_task = asyncio.create_task(start_bot())
+    bot_task = asyncio.create_task(start_bot())
     yield
-    # bot_task.cancel()
+    bot_task.cancel()
     await dispose_db()
 
 app = FastAPI(
@@ -58,6 +59,18 @@ app.include_router(hotspot_router,    prefix="/api/v1/hotspot",    tags=["Hotspo
 app.include_router(category_router,   prefix="/api/v1/category",   tags=["Category"])
 app.include_router(menu_router,       prefix="/api/v1/menu",       tags=["Menu"])
 
+router = RabbitRouter(url=settings.rabbit_url)
+
+@router.post("/order")
+async def test(name: str):
+    await router.broker.publish(
+        f"New orders: {name}",
+        queue="orders",
+    )
+    return {"message": "OK"}
+
+app.include_router(router)
+
 if __name__ == "__main__":
     uvicorn.run(
         app="main:app", 
@@ -66,11 +79,10 @@ if __name__ == "__main__":
         reload=True,
     )
 
-# app.include_router(menu_router,       prefix="/api/v1/menu",       tags=["Menu"])
-
-# pip install -r requirements.txt
+# python main.py
 # uvicorn main:app --reload
 # docker-compose up --build
+# pip install -r requirements.txt
 
 # WINDOWS
 # python -m venv venv
@@ -80,19 +92,3 @@ if __name__ == "__main__":
 # python3 -m venv venv
 # source venv/bin/activate
 # lsof -t -i tcp:8000 | xargs kill -9
-
-# http://127.0.0.1:8000/
-# http://127.0.0.1:8000/docs
-# http://127.0.0.1:8000/api/v1/test/
-# https://s3.twcstorage.ru/85a1cfc8-10bb0390-23dd-464a-806a-6301ca90db7b/restaurants/1.jpg
-
-# router = RabbitRouter(settings.rabbit_url)
-
-# @router.post("/order")
-# async def test(name: str):
-#     await router.broker.publish(
-#         f"New orders: {name}",
-#         queue="orders",
-#     )
-#     return {"message": "OK"}
-# app.include_router(router)

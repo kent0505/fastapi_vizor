@@ -94,16 +94,16 @@
         <thead>
             <tr>
                 <th>id</th>
-                <th>photo</th>
                 <th>rid</th>
+                <th>photo</th>
             </tr>
         </thead>
         <tbody>
             {% for panorama in panoramas %}
                 <tr>
                     <td>{{ panorama.id }}</td>
-                    <td>{{ panorama.photo }}</td>
                     <td>{{ panorama.rid }}</td>
+                    <td>{{ panorama.photo }}</td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -131,6 +131,24 @@
         </tbody>
     </table>
 
+    <h2>Categories</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>name</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in cities %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.name }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
     <h2>Menus</h2>
     <table>
         <thead>
@@ -138,10 +156,11 @@
                 <th>id</th>
                 <th>title</th>
                 <th>description</th>
-                <th>category</th>
-                <th>photo</th>
                 <th>price</th>
+                <th>currency</th>
+                <th>cid</th>
                 <th>rid</th>
+                <th>photo</th>
             </tr>
         </thead>
         <tbody>
@@ -150,10 +169,11 @@
                     <td>{{ menu.id }}</td>
                     <td>{{ menu.title }}</td>
                     <td>{{ menu.description }}</td>
-                    <td>{{ menu.category }}</td>
-                    <td>{{ menu.photo }}</td>
                     <td>{{ menu.price }}</td>
+                    <td>{{ menu.currency }}</td>
+                    <td>{{ menu.cid }}</td>
                     <td>{{ menu.rid }}</td>
+                    <td>{{ menu.photo }}</td>
                 </tr>
             {% endfor %}
         </tbody>

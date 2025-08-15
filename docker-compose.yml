@@ -1,18 +1,61 @@
-version: "3.9"
+# version: "3.9"
+
+# services:
+#   rabbitmq:
+#     image: rabbitmq:3-management
+#     ports:
+#       - "5672:5672"
+#       - "15672:15672"
+#     environment:
+#       RABBITMQ_DEFAULT_USER: guest
+#       RABBITMQ_DEFAULT_PASS: guest
+
+#   fastapi:
+#     build: .
+#     ports:
+#       - "8000:8000"
+    # depends_on:
+    #   - rabbitmq
+
+version: '3.8'
 
 services:
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-
-  fastapi:
+  app:
     build: .
     ports:
       - "8000:8000"
-    # depends_on:
-    #   - rabbitmq
+    environment:
+      - RABBITMQ_URL=amqp://user:password@rabbitmq:5672/
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"    # AMQP port
+      - "15672:15672"  # Management UI port
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  rabbitmq_data:

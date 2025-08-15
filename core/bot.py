@@ -16,7 +16,9 @@ async def start_bot():
     dp.include_router(router)
     logging.info("Starting Telegram bot")
     try:
-        await dp.start_polling(bot)
+        async with broker:
+            await broker.start()
+            await dp.start_polling(bot)
     except asyncio.CancelledError:
         logging.info("Telegram bot stopped")
 
@@ -63,17 +65,13 @@ async def handle_contact(message: Message):
 #     logging.info("SHUTDOWN")
 #     # bot_task.cancel()
 
-# from faststream.rabbit import RabbitBroker
+from faststream.rabbit import RabbitBroker
 
-# broker = RabbitBroker(settings.rabbit_url)
+broker = RabbitBroker(url=settings.rabbit_url)
 
-# @broker.subscriber("orders")
-# async def handle_orders(data: str):
-#     await bot.send_message(
-#         chat_id=1093286245,
-#         text=data,
-#     )
-
-# async with broker:
-        #     await broker.start()
-        #     await dp.start_polling(bot)
+@broker.subscriber("orders")
+async def handle_orders(data: str):
+    await bot.send_message(
+        chat_id=1093286245,
+        text=data,
+    )
