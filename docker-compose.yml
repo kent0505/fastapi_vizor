@@ -1,9 +1,9 @@
 services:
   bot:
-    build: ./bot/
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
     container_name: aiogram
-    # volumes:
-    #   - ./bot:/app
     environment:
       - TOKEN=${TOKEN}
       - RABBIT_URL=${RABBIT_URL}
@@ -15,12 +15,12 @@ services:
     restart: unless-stopped
 
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
     container_name: fastapi
     ports:
       - "8000:8000"
-    # volumes:
-    #   - .:/app
     environment:
       - RABBIT_URL=${RABBIT_URL}
     depends_on:
