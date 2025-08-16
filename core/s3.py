@@ -6,16 +6,16 @@ import boto3
 
 s3: S3Client = boto3.client(
     "s3",
-    endpoint_url=settings.endpoint_url,
-    aws_access_key_id=settings.aws_access_key_id,
-    aws_secret_access_key=settings.aws_secret_access_key,
-    region_name="ru-1",
+    endpoint_url=settings.s3_endpoint_url,
+    aws_access_key_id=settings.s3_access_key,
+    aws_secret_access_key=settings.s3_secret_key,
+    region_name=settings.s3_region_name,
 )
 
 async def delete_object(key: str):
     try:
         s3.delete_object(
-            Bucket=settings.bucket, 
+            Bucket=settings.s3_bucket, 
             Key=key,
         )
     except Exception as e:
@@ -33,7 +33,7 @@ async def put_object(
         key = f"{name}.{format}"
     
         s3.put_object(
-            Bucket=settings.bucket,
+            Bucket=settings.s3_bucket,
             Key=key,
             Body=await file.read(),
             ContentType=file.content_type,
