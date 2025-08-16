@@ -1,6 +1,6 @@
 services:
   bot:
-    build: ./bot
+    build: ./bot/
     container_name: aiogram
     # volumes:
     #   - ./bot:/app
