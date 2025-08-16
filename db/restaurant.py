@@ -13,10 +13,10 @@ class Restaurant(Base):
     address: Mapped[str] = mapped_column()
     latlon: Mapped[str] = mapped_column()
     hours: Mapped[str] = mapped_column()
-    position: Mapped[int] = mapped_column()
     city: Mapped[int] = mapped_column()
-    status: Mapped[int] = mapped_column()
-    photo: Mapped[str] = mapped_column()
+    position: Mapped[int] = mapped_column(nullable=True)
+    status: Mapped[int] = mapped_column(nullable=True)
+    photo: Mapped[str] = mapped_column(nullable=True)
 
 async def db_get_restaurants(db: AsyncSession) -> List[Restaurant]:
     restaurants = await db.scalars(select(Restaurant))

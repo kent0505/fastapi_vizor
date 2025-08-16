@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.s3 import put_object, delete_object
-from db import SessionDep, BaseModel
+from db import SessionDep, BaseModel, Optional
 from db.city import db_get_city_by_id
 from db.restaurant import Restaurant, db_get_restaurant_by_id
 
@@ -13,9 +13,9 @@ class RestaurantSchema(BaseModel):
     address: str
     latlon: str
     hours: str
-    position: int
     city: int
-    status: int
+    position: Optional[int] = None
+    status: Optional[int] = None
 
 @router.post("/")
 async def add_restaurant(
@@ -32,8 +32,8 @@ async def add_restaurant(
         address=body.address,
         latlon=body.latlon,
         hours=body.hours,
-        position=body.position,
         city=body.city,
+        position=body.position,
         status=body.status,   
     )
     db.add(restaurant)
@@ -60,8 +60,8 @@ async def edit_restaurant(
     restaurant.address = body.address
     restaurant.latlon = body.latlon
     restaurant.hours = body.hours
-    restaurant.position = body.position
     restaurant.city = body.city
+    restaurant.position = body.position
     restaurant.status = body.status
     await db.commit()
 

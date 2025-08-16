@@ -43,7 +43,7 @@ app.mount(path="/static",    app=StaticFiles(directory="static"),    name="stati
 app.mount(path="/templates", app=StaticFiles(directory="templates"), name="templates")
 
 app.include_router(home_router, include_in_schema=False)
-app.include_router(broker_router,     prefix="/api/v1/broker",     tags=["Broker"])
+# app.include_router(broker_router,     prefix="/api/v1/broker",     tags=["Broker"])
 app.include_router(auth_router,       prefix="/api/v1/auth",       tags=["Auth"])
 app.include_router(client_router,     prefix="/api/v1/client",     tags=["Client"])
 app.include_router(user_router,       prefix="/api/v1/user",       tags=["User"])

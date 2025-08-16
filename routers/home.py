@@ -31,7 +31,7 @@ async def home(
             name="Otabek",
             phone="+998998472580",
             age=25,
-            role=Roles.admin,
+            role=Roles.admin.value,
         )
         db.add(user)
         await db.commit()
