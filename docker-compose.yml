@@ -17,7 +17,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.bot
+      dockerfile: Dockerfile.app
     container_name: fastapi
     ports:
       - "8000:8000"
