@@ -13,6 +13,25 @@ class UserSchema(BaseModel):
     age: str
     fcm: str
 
+@router.get("/")
+async def get_user(
+    db: SessionDep,
+    id: int = Depends(JWTBearer(role=Roles.user)),
+):
+    user = await db_get_user_by_id(db, id)
+    if not user:
+        raise HTTPException(404, "user not found")
+
+    return {
+        "user": {
+            "id": user.id,
+            "phone": user.phone,
+            "name": user.name,
+            "age": user.age,
+            "photo": user.photo,
+        }
+    }
+
 @router.put("/")
 async def edit_user(
     body: UserSchema,
@@ -29,11 +48,11 @@ async def edit_user(
 
     return {"message": "user updated"}
 
-@router.post("/")
-async def add_user_photo(
-    id: int, 
+@router.patch("/")
+async def edit_user_photo(
     db: SessionDep,
     file: UploadFile = File(),
+    id: int = Depends(JWTBearer(role=Roles.user)),
 ):
     user = await db_get_user_by_id(db, id)
     if not user:

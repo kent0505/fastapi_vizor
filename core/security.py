@@ -65,4 +65,4 @@ class JWTBearer(HTTPBearer):
         if payload.get("version") != settings.version:
             raise HTTPException(403, "token version mismatch")
 
-        return token.credentials
+        return payload.get("id")
