@@ -1,6 +1,7 @@
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
+from typing import Annotated
 from enum import Enum
 from core.config import settings
 
@@ -66,3 +67,5 @@ class JWTBearer(HTTPBearer):
             raise HTTPException(403, "token version mismatch")
 
         return payload.get("id")
+
+UserDep = Annotated[int, Depends(JWTBearer(role=Roles.user))]

@@ -1,19 +1,18 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
 from core.security import Roles, signJWT
 from core.config import settings
 from core.sms import send_sms
 from core.utils import get_timestamp, generate_code
-from db import SessionDep, BaseModel
-from db.user import User, db_get_user_by_phone
+from db import SessionDep, BaseModel, select
+from db.user import User
 
 router = APIRouter()
 
 class PhoneSchema(BaseModel):
-    phone: str
+    phone: str = "+998998472580"
 
 class LoginSchema(BaseModel):
-    phone: str
+    phone: str = "+998998472580"
     code: str
 
 @router.post("/send_code")
@@ -25,7 +24,7 @@ async def send_code(
 
     await send_sms(code, body.phone)
 
-    user = await db_get_user_by_phone(db, body.phone)
+    user = await db.scalar(select(User).filter_by(phone=body.phone))
 
     if user:
         user.code = code
@@ -46,7 +45,8 @@ async def login(
     body: LoginSchema,
     db: SessionDep,
 ):
-    user = await db_get_user_by_phone(db, body.phone)
+    user = await db.scalar(select(User).filter_by(phone=body.phone))
+
     if not user:
         raise HTTPException(404, "phone number does not exist")
 

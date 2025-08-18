@@ -1,8 +1,8 @@
 from fastapi import Depends
-from sqlalchemy import select, desc
+from sqlalchemy import select
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from typing import Annotated, List, Optional
+from typing import Annotated, Optional
 from pydantic import BaseModel
 
 class Base(DeclarativeBase):

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
-from db import SessionDep, BaseModel
-from db.category import Category, db_get_category_by_id
+from db import SessionDep, BaseModel, select
+from db.category import Category
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
@@ -25,7 +25,7 @@ async def edit_category(
     body: CategorySchema,
     db: SessionDep,
 ):
-    category = await db_get_category_by_id(db, id)
+    category = await db.scalar(select(Category).filter_by(id=id))
     if not category:
         raise HTTPException(404, "category not found")
 
@@ -39,7 +39,7 @@ async def delete_category(
     id: int,
     db: SessionDep,
 ):
-    category = await db_get_category_by_id(db, id)
+    category = await db.scalar(select(Category).filter_by(id=id))
     if not category:
         raise HTTPException(404, "category not found")
 

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
-from db import SessionDep, BaseModel
-from db.city import City, db_get_city_by_id
+from db import SessionDep, BaseModel, select
+from db.city import City
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
@@ -25,7 +25,7 @@ async def edit_city(
     body: CitySchema,
     db: SessionDep,
 ):
-    city = await db_get_city_by_id(db, id)
+    city = await db.scalar(select(City).filter_by(id=id))
     if not city:
         raise HTTPException(404, "city not found")
 
@@ -39,7 +39,7 @@ async def delete_city(
     id: int,
     db: SessionDep,
 ):
-    city = await db_get_city_by_id(db, id)
+    city = await db.scalar(select(City).filter_by(id=id))
     if not city:
         raise HTTPException(404, "city not found")
 

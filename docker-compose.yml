@@ -4,9 +4,11 @@ services:
       context: .
       dockerfile: Dockerfile.bot
     container_name: aiogram
-    environment:
-      - TOKEN=${TOKEN}
-      - RABBIT_URL=${RABBIT_URL}
+    env_file:
+      - .env
+    # environment:
+    #   - TOKEN=${TOKEN}
+    #   - RABBIT_URL=${RABBIT_URL}
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -21,8 +23,10 @@ services:
     container_name: fastapi
     ports:
       - "8000:8000"
-    environment:
-      - RABBIT_URL=${RABBIT_URL}
+    env_file:
+      - .env
+    # environment:
+    #   - RABBIT_URL=${RABBIT_URL}
     depends_on:
       rabbitmq:
         condition: service_healthy

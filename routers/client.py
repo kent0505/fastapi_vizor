@@ -1,17 +1,17 @@
 from fastapi import APIRouter
-from db import SessionDep
-from db.city import db_get_cities
-from db.restaurant import db_get_restaurants_by_city
-from db.panorama import db_get_panoramas_by_rid
-from db.hotspot import db_get_hotspots_by_pid
-from db.category import db_get_categories
-from db.menu import db_get_menus_by_restaurant
+from db import SessionDep, select
+from db.city import City
+from db.restaurant import Restaurant
+from db.panorama import Panorama
+from db.hotspot import Hotspot
+from db.category import Category
+from db.menu import Menu
 
 router = APIRouter()
 
 @router.get("/cities")
 async def get_cities(db: SessionDep):
-    cities = await db_get_cities(db)
+    cities = (await db.scalars(select(City))).all()
 
     return {"cities": cities}
 
@@ -20,7 +20,11 @@ async def get_restaurants(
     city: int,
     db: SessionDep,
 ):
-    restaurants = await db_get_restaurants_by_city(db, city)
+    restaurants = (await db.scalars(
+        select(Restaurant)
+        .filter_by(city=city)
+        .order_by(Restaurant.position)
+    )).all()
 
     return {
         "city": city,
@@ -32,7 +36,7 @@ async def get_panoramas(
     rid: int,
     db: SessionDep,
 ):
-    panoramas = await db_get_panoramas_by_rid(db, rid)
+    panoramas = (await db.scalars(select(Panorama).filter_by(rid=rid))).all()
 
     return {
         "rid": rid,
@@ -44,7 +48,7 @@ async def get_hotspots(
     pid: int,
     db: SessionDep,
 ):
-    hotspots = await db_get_hotspots_by_pid(db, pid)
+    hotspots = (await db.scalars(select(Hotspot).filter_by(pid=pid))).all()
 
     return {
         "pid": pid,
@@ -53,7 +57,7 @@ async def get_hotspots(
 
 @router.get("/categories")
 async def get_categories(db: SessionDep):
-    categories = await db_get_categories(db)
+    categories = (await db.scalars(select(Category))).all()
 
     return {"categories": categories}
 
@@ -62,7 +66,7 @@ async def get_menus(
     rid: int,
     db: SessionDep,
 ):
-    menus = await db_get_menus_by_restaurant(db, rid)
+    menus = (await db.scalars(select(Menu).filter_by(rid=rid))).all()
 
     return {
         "rid": rid,

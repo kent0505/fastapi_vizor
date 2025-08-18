@@ -2,9 +2,9 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.utils import get_timestamp
 from core.s3 import put_object, delete_object
-from db import SessionDep, BaseModel
-from db.restaurant import db_get_restaurant_by_id
-from db.panorama import Panorama, db_get_panorama_by_id
+from db import SessionDep, BaseModel, select
+from db.restaurant import Restaurant
+from db.panorama import Panorama
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
@@ -18,7 +18,7 @@ async def add_panorama(
     db: SessionDep,
     file: UploadFile = File(),
 ):
-    restaurant = await db_get_restaurant_by_id(db, rid)
+    restaurant = await db.scalar(select(Restaurant).filter_by(id=rid))
     if not restaurant:
         raise HTTPException(404, "restaurant not found")
 
@@ -41,7 +41,7 @@ async def edit_panorama_photo(
     db: SessionDep,
     file: UploadFile = File(),
 ):
-    panorama = await db_get_panorama_by_id(db, id)
+    panorama = await db.scalar(select(Panorama).filter_by(id=id))
     if not panorama:
         raise HTTPException(404, "panorama not found")
 
@@ -62,7 +62,7 @@ async def delete_panorama(
     id: int,
     db: SessionDep,
 ):
-    panorama = await db_get_panorama_by_id(db, id)
+    panorama = await db.scalar(select(Panorama).filter_by(id=id))
     if not panorama:
         raise HTTPException(404, "panorama not found")
 

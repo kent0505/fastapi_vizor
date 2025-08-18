@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.s3 import put_object, delete_object
-from db import SessionDep, BaseModel, Optional
-from db.city import db_get_city_by_id
-from db.restaurant import Restaurant, db_get_restaurant_by_id
+from db import SessionDep, BaseModel, Optional, select
+from db.city import City
+from db.restaurant import Restaurant
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
@@ -22,7 +22,7 @@ async def add_restaurant(
     body: RestaurantSchema,
     db: SessionDep,
 ):
-    city = await db_get_city_by_id(db, body.city)
+    city = await db.scalar(select(City).filter_by(id=body.city))
     if not city:
         raise HTTPException(404, "city not found")
 
@@ -47,11 +47,11 @@ async def edit_restaurant(
     body: RestaurantSchema,
     db: SessionDep,
 ):
-    restaurant = await db_get_restaurant_by_id(db, id)
+    restaurant = await db.scalar(select(Restaurant).filter_by(id=id))
     if not restaurant:
         raise HTTPException(404, "restaurant not found")
     
-    city = await db_get_city_by_id(db, body.city)
+    city = await db.scalar(select(City).filter_by(id=body.city))
     if not city:
         raise HTTPException(404, "city not found")
 
@@ -73,7 +73,7 @@ async def edit_restaurant_photo(
     db: SessionDep,
     file: UploadFile = File(),
 ):
-    restaurant = await db_get_restaurant_by_id(db, id)
+    restaurant = await db.scalar(select(Restaurant).filter_by(id=id))
     if not restaurant:
         raise HTTPException(404, "restaurant not found")
 
@@ -94,7 +94,7 @@ async def delete_restaurant(
     id: int,
     db: SessionDep,
 ):
-    restaurant = await db_get_restaurant_by_id(db, id)
+    restaurant = await db.scalar(select(Restaurant).filter_by(id=id))
     if not restaurant:
         raise HTTPException(404, "restaurant not found")
 

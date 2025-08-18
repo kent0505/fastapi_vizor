@@ -65,7 +65,6 @@ if __name__ == "__main__":
 
 # python main.py
 # uvicorn main:app --reload
-# docker-compose up --build
 # pip install -r requirements.txt
 
 # WINDOWS
@@ -76,3 +75,8 @@ if __name__ == "__main__":
 # python3 -m venv venv
 # source venv/bin/activate
 # lsof -t -i tcp:8000 | xargs kill -9
+
+# DOCKER
+# docker-compose up --build
+# docker build -t fastapi .
+# docker run -p 8000:8000 fastapi

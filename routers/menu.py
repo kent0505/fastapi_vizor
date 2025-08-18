@@ -1,14 +1,14 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.s3 import put_object, delete_object
-from db import SessionDep, BaseModel
-from db.restaurant import db_get_restaurant_by_id
-from db.category import db_get_category_by_id
-from db.menu import Menu, db_get_menu_by_id
+from db import SessionDep, BaseModel, select
+from db.restaurant import Restaurant
+from db.category import Category
+from db.menu import Menu
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
-class Menu(BaseModel):
+class MenuSchema(BaseModel):
     title: str
     description: str
     price: str
@@ -18,16 +18,16 @@ class Menu(BaseModel):
 
 @router.post("/")
 async def add_menu(
-    body: Menu,
+    body: MenuSchema,
     db: SessionDep,
 ):
-    restaurant = await db_get_restaurant_by_id(body.rid)
-    if not restaurant:
-        raise HTTPException(404, "restaurant not found")
-
-    category = await db_get_category_by_id(body.cid)
+    category = await db.scalar(select(Category).filter_by(id=body.cid))
     if not category:
         raise HTTPException(404, "category not found")
+
+    restaurant = await db.scalar(select(Restaurant).filter_by(id=body.rid))
+    if not restaurant:
+        raise HTTPException(404, "restaurant not found")
 
     menu = Menu(
         title=body.title,
@@ -45,20 +45,20 @@ async def add_menu(
 @router.put("/")
 async def edit_menu(
     id: int,
-    body: Menu,
+    body: MenuSchema,
     db: SessionDep,
 ):
-    menu = await db_get_menu_by_id(db, id)
+    menu = await db.scalar(select(Menu).filter_by(id=id))
     if not menu:
         raise HTTPException(404, "menu not found")
 
-    restaurant = await db_get_restaurant_by_id(body.rid)
-    if not restaurant:
-        raise HTTPException(404, "restaurant not found")
-
-    category = await db_get_category_by_id(body.cid)
+    category = await db.scalar(select(Category).filter_by(id=body.cid))
     if not category:
         raise HTTPException(404, "category not found")
+
+    restaurant = await db.scalar(select(Restaurant).filter_by(id=body.rid))
+    if not restaurant:
+        raise HTTPException(404, "restaurant not found")
 
     menu.title=body.title,
     menu.description=body.description,
@@ -76,7 +76,7 @@ async def edit_menu_photo(
     db: SessionDep,
     file: UploadFile = File(),
 ):
-    menu = await db_get_menu_by_id(db, id)
+    menu = await db.scalar(select(Menu).filter_by(id=id))
     if not menu:
         raise HTTPException(404, "menu not found")
 
@@ -94,7 +94,7 @@ async def delete_menu(
     id: int,
     db: SessionDep,
 ):
-    menu = await db_get_menu_by_id(db, id)
+    menu = await db.scalar(select(Menu).filter_by(id=id))
     if not menu:
         raise HTTPException(404, "menu not found")
 

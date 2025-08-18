@@ -1,5 +1,5 @@
 from faststream.rabbit.fastapi import RabbitRouter
-from core.config               import settings
+from core.config import settings
 
 router = RabbitRouter(url=settings.rabbit_url)
 

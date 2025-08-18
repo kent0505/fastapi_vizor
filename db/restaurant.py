@@ -1,11 +1,4 @@
-from db import (
-    Base, 
-    Mapped, 
-    AsyncSession,
-    List,
-    select,
-    mapped_column,
-)
+from db import Base, Mapped, mapped_column
 
 class Restaurant(Base):
     title: Mapped[str] = mapped_column()
@@ -17,25 +10,3 @@ class Restaurant(Base):
     position: Mapped[int] = mapped_column(nullable=True)
     status: Mapped[int] = mapped_column(nullable=True)
     photo: Mapped[str] = mapped_column(nullable=True)
-
-async def db_get_restaurants(db: AsyncSession) -> List[Restaurant]:
-    restaurants = await db.scalars(select(Restaurant))
-    return list(restaurants)
-
-async def db_get_restaurants_by_city(
-    db: AsyncSession, 
-    city: int,
-) -> List[Restaurant]:
-    restaurants = await db.scalars(
-        select(Restaurant)
-        .filter_by(city=city)
-        .order_by(Restaurant.position)
-    )
-    return list(restaurants)
-
-async def db_get_restaurant_by_id(
-    db: AsyncSession, 
-    id: int,
-) -> Restaurant | None:
-    restaurant = await db.scalar(select(Restaurant).filter_by(id=id))
-    return restaurant

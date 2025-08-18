@@ -1,13 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
-from core.security import Roles
-from db import SessionDep, BaseModel
-from db.user import (
-    User,
-    db_get_users,
-    db_get_user_by_id,
-    db_get_user_by_phone,
-)
+from core.security import Roles, UserDep
+from db import SessionDep, BaseModel, select
+from db.user import User
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
@@ -18,7 +13,7 @@ class UserSchema(BaseModel):
 
 @router.get("/")
 async def get_users(db: SessionDep):
-    users = await db_get_users(db)
+    users = (await db.scalars(select(User))).all()
 
     return {"users": users}
 
@@ -28,7 +23,7 @@ async def add_admin(
     role: Roles,
     db: SessionDep,
 ):
-    user = await db_get_user_by_phone(db, body.phone)
+    user = await db.scalar(select(User).filter_by(phone=body.phone))
     if user:
         raise HTTPException(409, "user already exists")
 
@@ -41,7 +36,7 @@ async def add_admin(
     db.add(user)
     await db.commit()
 
-    return {"message": f"{role.value} registered"}
+    return {"message": f"{role.value} added"}
 
 @router.put("/")
 async def edit_admin(
@@ -49,7 +44,7 @@ async def edit_admin(
     role: Roles,
     db: SessionDep,
 ):
-    user = await db_get_user_by_phone(db, body.phone)
+    user = await db.scalar(select(User).filter_by(phone=body.phone))
     if not user:
         raise HTTPException(404, "user not found")
     
@@ -67,11 +62,15 @@ async def edit_admin(
 @router.delete("/")
 async def delete_admin(
     id: int,
+    admin: UserDep,
     db: SessionDep,
 ):
-    user = await db_get_user_by_id(db, id)
+    user = await db.scalar(select(User).filter_by(id=id))
     if not user:
         raise HTTPException(404, "user not found")
+    
+    if id == admin:
+        raise HTTPException(403, "admin can't delete itself")
 
     await db.delete(user)
     await db.commit()

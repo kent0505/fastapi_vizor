@@ -1,24 +1,23 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
-from core.security import Roles
+from core.security import Roles, UserDep
 from core.s3 import put_object
-from db import BaseModel, SessionDep
-from db.user import db_get_user_by_id
+from db import BaseModel, SessionDep, Optional, select
+from db.user import User
 
 router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.user))])
 
 class UserSchema(BaseModel):
-    id: int
     name: str
     age: str
-    fcm: str
+    fcm: Optional[str] = None
 
 @router.get("/")
 async def get_user(
+    id: UserDep,
     db: SessionDep,
-    id: int = Depends(JWTBearer(role=Roles.user)),
 ):
-    user = await db_get_user_by_id(db, id)
+    user = await db.scalar(select(User).filter_by(id=id))
     if not user:
         raise HTTPException(404, "user not found")
 
@@ -34,13 +33,14 @@ async def get_user(
 
 @router.put("/")
 async def edit_user(
+    id: UserDep,
     body: UserSchema,
     db: SessionDep,
 ):
-    user = await db_get_user_by_id(db, body.id)
+    user = await db.scalar(select(User).filter_by(id=id))
     if not user:
         raise HTTPException(404, "user not found")
-    
+
     user.name = body.name
     user.age = body.age
     user.fcm = body.fcm
@@ -50,18 +50,18 @@ async def edit_user(
 
 @router.patch("/")
 async def edit_user_photo(
+    id: UserDep,
     db: SessionDep,
     file: UploadFile = File(),
-    id: int = Depends(JWTBearer(role=Roles.user)),
 ):
-    user = await db_get_user_by_id(db, id)
+    user = await db.scalar(select(User).filter_by(id=id))
     if not user:
         raise HTTPException(404, "user not found")
-    
+
     key = f"users/{id}"
 
     photo = await put_object(key, file)
-    
+
     user.photo = photo
     await db.commit()
 
