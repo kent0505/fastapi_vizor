@@ -2,15 +2,15 @@ from aiogram import Bot, Dispatcher, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from faststream.rabbit import RabbitBroker
+from bot.config import settings
 
 import logging
 import asyncio
-import os
 
-bot = Bot(token=os.getenv("TOKEN", ""))
+bot = Bot(token=settings.token)
 dp = Dispatcher()
 router = Router()
-broker = RabbitBroker(url=os.getenv("RABBIT_URL", ""))
+broker = RabbitBroker(url=settings.rabbit_url)
 
 @router.message(CommandStart())
 async def cmd_start(message: Message):
