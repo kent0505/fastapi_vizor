@@ -2,7 +2,7 @@ from aiogram import Bot, Dispatcher, Router
 from aiogram.filters import CommandStart
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from faststream.rabbit import RabbitBroker
-from bot.config import settings
+from config import settings
 
 import logging
 import asyncio
@@ -20,7 +20,7 @@ async def cmd_start(message: Message):
         keyboard=[
             [
                 KeyboardButton(
-                    text="📱 Send my contact",
+                    text="Send contact",
                     request_contact=True,
                 )
             ]
@@ -28,7 +28,7 @@ async def cmd_start(message: Message):
     )
 
     await message.answer(
-        text="Send contact",
+        text="Press Send contact button",
         reply_markup=keyboard,
     )
 
