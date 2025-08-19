@@ -22,7 +22,7 @@ class Settings(BaseModel):
     s3_secret_key: str = os.getenv("S3_SECRET_KEY")
     s3_bucket: str = os.getenv("S3_BUCKET")
     # db
-    db_url: str = os.getenv("DB_URL")
+    db_url: str = os.getenv("POSTGRES_URL")
     # twilio
     account_sid: str = os.getenv("ACCOUNT_SID")
     auth_token: str = os.getenv("AUTH_TOKEN")

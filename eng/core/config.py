@@ -6,9 +6,9 @@ import os
 load_dotenv()
 
 class Settings(BaseModel):
-    token: str = os.getenv("TOKEN")
+    swagger: dict = {"defaultModelsExpandDepth": -1}
+
+    # broker
     rabbit_url: str = os.getenv("RABBIT_URL")
-    mongo_url: str = os.getenv("MONGO_URL")
-    mongo_db: str = os.getenv("MONGO_DB")
 
 settings = Settings()

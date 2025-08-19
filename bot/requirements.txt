@@ -1,5 +1,4 @@
 aiogram
-sqlalchemy
-aiosqlite
+motor
 python-dotenv
 faststream[rabbit]

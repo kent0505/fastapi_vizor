@@ -12,6 +12,13 @@ dp = Dispatcher()
 router = Router()
 broker = RabbitBroker(url=settings.rabbit_url)
 
+@broker.subscriber("orders")
+async def handle_orders(data: str):
+    await bot.send_message(
+        chat_id=1093286245,
+        text=data,
+    )
+
 @router.message(CommandStart())
 async def cmd_start(message: Message):
     keyboard = ReplyKeyboardMarkup(
@@ -28,7 +35,7 @@ async def cmd_start(message: Message):
     )
 
     await message.answer(
-        text="Press Send contact button",
+        text="Send contact",
         reply_markup=keyboard,
     )
 
@@ -40,20 +47,13 @@ async def handle_contact(message: Message):
     else:
         print(f"error: {message.contact.phone_number}")
 
-@broker.subscriber("orders")
-async def handle_orders(data: str):
-    await bot.send_message(
-        chat_id=1093286245,
-        text=data,
-    )
-
 async def main():
     dp.include_router(router)
 
     async with broker:
         await broker.start()
-        logging.info("Starting Telegram bot")
         await dp.start_polling(bot)
+        logging.info("Starting Telegram bot")
     logging.info("Telegram bot stopped")
 
 if __name__ == "__main__":
