@@ -14,4 +14,3 @@ mypy-boto3-s3
 twilio
 greenlet
 faststream[rabbit]
-httpx

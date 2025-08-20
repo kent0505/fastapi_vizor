@@ -1,6 +1,6 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel
-from config import settings
+from core.config import settings
 
 class User(BaseModel):
     id: int
