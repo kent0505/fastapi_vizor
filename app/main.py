@@ -4,9 +4,9 @@ from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from core.config import settings
 from db import db_helper
-from routers.home import router as home_router
-from routers.broker import router as broker_router
+from routers.auth import broker
 from routers.auth import router as auth_router
+from routers.home import router as home_router
 from routers.client import router as client_router
 from routers.user import router as user_router
 from routers.admin import router as admin_router
@@ -16,7 +16,6 @@ from routers.panorama import router as panorama_router
 from routers.hotspot import router as hotspot_router
 from routers.category import router as category_router
 from routers.menu import router as menu_router
-from routers.test import broker
 
 import uvicorn
 import logging
@@ -46,7 +45,6 @@ app.add_middleware(
 app.mount(path="/static", app=StaticFiles(directory="static"), name="static")
 
 app.include_router(home_router, include_in_schema=False)
-app.include_router(broker_router, prefix="/api/v1/broker", tags=["Broker"])
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
 app.include_router(client_router, prefix="/api/v1/client", tags=["Client"])
 app.include_router(user_router, prefix="/api/v1/user", tags=["User"])
@@ -80,6 +78,6 @@ if __name__ == "__main__":
 # lsof -t -i tcp:8000 | xargs kill -9
 
 # DOCKER
-# docker-compose up --build
+# docker-compose up -d
 # docker build -t fastapi .
 # docker run -p 8000:8000 fastapi

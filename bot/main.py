@@ -1,6 +1,6 @@
 from aiogram import Bot, Dispatcher, Router
 from aiogram.filters import CommandStart
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton
 from faststream.rabbit import RabbitBroker
 from pydantic import BaseModel
 from core.config import settings
@@ -18,11 +18,13 @@ class MessageSchema(BaseModel):
     code: str
 
 class ContactSchema(BaseModel):
-    id: int
+    chat_id: int
     phone: str
 
 @broker.subscriber("codes")
-async def handle_codes(message: MessageSchema):
+async def handle_codes(data: str):
+    message = MessageSchema.model_validate_json(data)
+
     await bot.send_message(
         chat_id=message.chat_id,
         text=message.code,
@@ -49,17 +51,14 @@ async def cmd_start(message: Message):
 async def handle_contact(message: Message):
     if message.contact.user_id == message.from_user.id:
         contact = ContactSchema(
-            id=message.from_user.id,
+            chat_id=message.from_user.id,
             phone=message.contact.phone_number,
         )
         await broker.publish(
-            contact.model_dump(),
+            contact.model_dump_json(),
             queue="contacts",
         )
-        await message.answer(
-            text="Wait code",
-            reply_markup=ReplyKeyboardRemove(),
-        )
+        await message.answer(text="Wait code")
     else:
         await message.delete()
 
