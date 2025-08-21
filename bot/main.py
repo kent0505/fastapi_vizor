@@ -58,18 +58,16 @@ async def handle_contact(message: Message):
             contact.model_dump_json(),
             queue="contacts",
         )
-        await message.answer(text="Wait code")
     else:
         await message.delete()
 
 async def main():
     dp.include_router(router)
-
-    async with broker:
+    try:
         await broker.start()
         await dp.start_polling(bot)
-        logging.info("Starting Telegram bot")
-    logging.info("Telegram bot stopped")
+    except:
+        await broker.stop()
 
 if __name__ == "__main__":
     asyncio.run(main())

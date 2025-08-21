@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
-from core.security import Roles
 from db import SessionDep, select
 from db.user import User
 from db.city import City
@@ -25,18 +24,6 @@ async def home(
     hotspots = (await db.scalars(select(Hotspot))).all()
     categories = (await db.scalars(select(Category))).all()
     menus = (await db.scalars(select(Menu))).all()
-
-    if not users:
-        user = User(
-            name="Otabek",
-            phone="+998998472580",
-            age=25,
-            role=Roles.admin.value,
-        )
-        db.add(user)
-        await db.commit()
-        await db.refresh(user)
-        users = [user]
 
     return templates.TemplateResponse(
         "index.html", {

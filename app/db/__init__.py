@@ -1,4 +1,5 @@
 from fastapi import Depends
+from contextlib import asynccontextmanager
 from sqlalchemy import select
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
@@ -37,6 +38,11 @@ class DatabaseHelper:
         await self.engine.dispose()
 
     async def get_db(self):
+        async with self.session() as session:
+            yield session
+
+    @asynccontextmanager
+    async def get_session(self):
         async with self.session() as session:
             yield session
 
