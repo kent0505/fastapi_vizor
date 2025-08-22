@@ -3,6 +3,7 @@ from db import SessionDep, select
 from db.city import City
 from db.restaurant import Restaurant
 from db.panorama import Panorama
+from db.table import RestaurantTable
 from db.hotspot import Hotspot
 from db.category import Category
 from db.menu import Menu
@@ -41,6 +42,18 @@ async def get_panoramas(
     return {
         "rid": rid,
         "panoramas": panoramas,
+    }
+
+@router.get("/tables")
+async def get_panoramas(
+    rid: int,
+    db: SessionDep,
+):
+    tables = (await db.scalars(select(RestaurantTable).filter_by(rid=rid))).all()
+
+    return {
+        "rid": rid,
+        "tables": tables,
     }
 
 @router.get("/hotspots")

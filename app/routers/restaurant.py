@@ -70,7 +70,7 @@ async def edit_restaurant(
 
     return {"message": "restaurant updated"}
 
-@router.patch("/restaurant")
+@router.patch("/photo")
 async def edit_restaurant_photo(
     id: int, 
     db: SessionDep,

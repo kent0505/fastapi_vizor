@@ -48,7 +48,7 @@ async def edit_user(
 
     return {"message": "user updated"}
 
-@router.patch("/")
+@router.patch("/photo")
 async def edit_user_photo(
     id: UserDep,
     db: SessionDep,

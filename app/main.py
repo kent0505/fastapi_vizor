@@ -17,6 +17,7 @@ from routers.table import router as table_router
 from routers.hotspot import router as hotspot_router
 from routers.category import router as category_router
 from routers.menu import router as menu_router
+from routers.flower import router as flower_router
 
 import uvicorn
 import logging
@@ -43,7 +44,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount(path="/static", app=StaticFiles(directory="static"), name="static")
+app.mount(
+    path="/static",
+    app=StaticFiles(directory="static"), 
+    name="static",
+)
 
 app.include_router(home_router, include_in_schema=False)
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
@@ -57,6 +62,7 @@ app.include_router(table_router, prefix="/api/v1/table", tags=["Table"])
 app.include_router(hotspot_router, prefix="/api/v1/hotspot", tags=["Hotspot"])
 app.include_router(category_router, prefix="/api/v1/category", tags=["Category"])
 app.include_router(menu_router, prefix="/api/v1/menu", tags=["Menu"])
+app.include_router(flower_router, prefix="/api/v1/flower", tags=["Flower"])
 
 if __name__ == "__main__":
     uvicorn.run(
