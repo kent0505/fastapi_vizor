@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.security import Roles, UserDep
-from core.s3 import put_object
+from core.s3 import s3_service
 from db import BaseModel, SessionDep, Optional, select
 from db.user import User
 
@@ -60,7 +60,7 @@ async def edit_user_photo(
 
     key = f"users/{id}"
 
-    photo = await put_object(key, file)
+    photo = await s3_service.put_object(key, file)
 
     user.photo = photo
     await db.commit()

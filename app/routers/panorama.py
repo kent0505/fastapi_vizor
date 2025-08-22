@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.utils import get_timestamp
-from core.s3 import put_object, delete_object
+from core.s3 import s3_service
 from db import SessionDep, BaseModel, select
 from db.restaurant import Restaurant
 from db.panorama import Panorama
@@ -24,7 +24,7 @@ async def add_panorama(
 
     key = f"panoramas/{get_timestamp()}"
 
-    photo = await put_object(key, file)
+    photo = await s3_service.put_object(key, file)
 
     panorama = Panorama(
         rid=rid,
@@ -47,7 +47,7 @@ async def edit_panorama_photo(
 
     key = f"panoramas/{id}"
 
-    photo = await put_object(key, file)
+    photo = await s3_service.put_object(key, file)
 
     panorama.photo = photo
     await db.commit()
@@ -66,7 +66,7 @@ async def delete_panorama(
     if not panorama:
         raise HTTPException(404, "panorama not found")
 
-    await delete_object(panorama.photo)
+    await s3_service.delete_object(panorama.photo)
 
     await db.delete(panorama)
     await db.commit()

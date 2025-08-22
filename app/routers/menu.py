@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
-from core.s3 import put_object, delete_object
+from core.s3 import s3_service
 from db import SessionDep, BaseModel, select
 from db.restaurant import Restaurant
 from db.category import Category
@@ -82,7 +82,7 @@ async def edit_menu_photo(
 
     key = f"menus/{id}"
 
-    photo =  await put_object(key, file)
+    photo =  await s3_service.put_object(key, file)
 
     menu.photo = photo
     await db.commit()
@@ -99,7 +99,7 @@ async def delete_menu(
         raise HTTPException(404, "menu not found")
 
     key = f"menus/{menu.id}"
-    await delete_object(key)
+    await s3_service.delete_object(key)
 
     await db.delete(menu)
     await db.commit()

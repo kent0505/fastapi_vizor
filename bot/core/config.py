@@ -8,7 +8,5 @@ load_dotenv()
 class Settings(BaseModel):
     token: str = os.getenv("TOKEN")
     rabbit_url: str = os.getenv("RABBIT_URL")
-    # mongo_url: str = os.getenv("MONGO_URL")
-    # mongo_db: str = os.getenv("MONGO_DB")
 
 settings = Settings()

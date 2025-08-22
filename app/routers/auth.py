@@ -1,13 +1,12 @@
 from fastapi import APIRouter, HTTPException
-from faststream.rabbit import RabbitBroker
 from core.security import Roles, signJWT
 from core.config import settings
+from core.broker import Queue, broker
 from core.utils import get_timestamp, generate_code
 from db import SessionDep, BaseModel, select, db_helper
 from db.user import User
 
 router = APIRouter()
-broker = RabbitBroker(url=settings.rabbit_url)
 
 class MessageSchema(BaseModel):
     chat_id: int
@@ -17,14 +16,11 @@ class ContactSchema(BaseModel):
     chat_id: int
     phone: str
 
-class PhoneSchema(BaseModel):
-    phone: str = "+998998472580"
-
 class LoginSchema(BaseModel):
     phone: str = "+998998472580"
     code: str
 
-@broker.subscriber("contacts")
+@broker.subscriber(Queue.contacts.value)
 async def handle_contacts(data: str):
     contact = ContactSchema.model_validate_json(data)
 
@@ -41,16 +37,17 @@ async def handle_contacts(data: str):
             if admin:
                 user = User(
                     phone=contact.phone,
-                    code=code,
                     role=Roles.user.value,
+                    code=code,
+                    chat_id=contact.chat_id,
                 )
             else:
                 user = User(
-                    name="Otabek",
-                    phone="+998998472580",
-                    age=25,
+                    name="Admin",
+                    phone=contact.phone,
                     role=Roles.admin.value,
                     code=code,
+                    chat_id=contact.chat_id,
                 )
 
             db.add(user)
@@ -63,33 +60,8 @@ async def handle_contacts(data: str):
         )
         await broker.publish(
             message.model_dump_json(),
-            queue="codes",
+            queue=Queue.codes.value,
         )
-
-# @router.post("/send_code")
-# async def send_code(
-#     body: PhoneSchema,
-#     db: SessionDep,
-# ):
-#     code = str(generate_code())
-
-#     # await send_sms(code, body.phone)
-
-#     user = await db.scalar(select(User).filter_by(phone=body.phone))
-
-#     if user:
-#         user.code = code
-#     else:
-#         user = User(
-#             phone=body.phone,
-#             code=code,
-#             role=Roles.user.value,
-#         )
-#         db.add(user)
-
-#     await db.commit()
-
-#     return {"message": "sms code sent"}
 
 @router.post("/login")
 async def login(

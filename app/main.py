@@ -3,8 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from core.config import settings
+from core.broker import broker
 from db import db_helper
-from routers.auth import broker
 from routers.auth import router as auth_router
 from routers.home import router as home_router
 from routers.client import router as client_router
@@ -13,6 +13,7 @@ from routers.admin import router as admin_router
 from routers.city import router as city_router
 from routers.restaurant import router as restaurant_router
 from routers.panorama import router as panorama_router
+from routers.table import router as table_router
 from routers.hotspot import router as hotspot_router
 from routers.category import router as category_router
 from routers.menu import router as menu_router
@@ -52,6 +53,7 @@ app.include_router(admin_router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(city_router, prefix="/api/v1/city", tags=["City"])
 app.include_router(restaurant_router, prefix="/api/v1/restaurant", tags=["Restaurant"])
 app.include_router(panorama_router, prefix="/api/v1/panorama", tags=["Panorama"])
+app.include_router(table_router, prefix="/api/v1/table", tags=["Table"])
 app.include_router(hotspot_router, prefix="/api/v1/hotspot", tags=["Hotspot"])
 app.include_router(category_router, prefix="/api/v1/category", tags=["Category"])
 app.include_router(menu_router, prefix="/api/v1/menu", tags=["Menu"])

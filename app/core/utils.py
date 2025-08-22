@@ -8,7 +8,7 @@ def get_timestamp() -> int:
 def generate_code() -> int:
     return random.randint(10000, 99999)
 
-def hash_password(password: str):
+def hash_password(password: str) -> str:
     hashed = bcrypt.hashpw(
         password.encode("utf-8"), 
         bcrypt.gensalt(),

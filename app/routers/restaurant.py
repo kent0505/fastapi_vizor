@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
-from core.s3 import put_object, delete_object
+from core.s3 import s3_service
 from db import SessionDep, BaseModel, Optional, select
 from db.city import City
 from db.restaurant import Restaurant
@@ -11,7 +11,8 @@ class RestaurantSchema(BaseModel):
     title: str
     phone: str
     address: str
-    latlon: str
+    lat: str
+    lon: str
     hours: str
     city: int
     position: Optional[int] = None
@@ -30,7 +31,8 @@ async def add_restaurant(
         title=body.title,
         phone=body.phone,
         address=body.address,
-        latlon=body.latlon,
+        lat=body.lat,
+        lon=body.lon,
         hours=body.hours,
         city=body.city,
         position=body.position,
@@ -50,7 +52,7 @@ async def edit_restaurant(
     restaurant = await db.scalar(select(Restaurant).filter_by(id=id))
     if not restaurant:
         raise HTTPException(404, "restaurant not found")
-    
+
     city = await db.scalar(select(City).filter_by(id=body.city))
     if not city:
         raise HTTPException(404, "city not found")
@@ -58,7 +60,8 @@ async def edit_restaurant(
     restaurant.title = body.title
     restaurant.phone = body.phone
     restaurant.address = body.address
-    restaurant.latlon = body.latlon
+    restaurant.lat = body.lat
+    restaurant.lon = body.lon
     restaurant.hours = body.hours
     restaurant.city = body.city
     restaurant.position = body.position
@@ -79,7 +82,7 @@ async def edit_restaurant_photo(
 
     key = f"restaurants/{id}"
 
-    photo = await put_object(key, file)
+    photo = await s3_service.put_object(key, file)
 
     restaurant.photo = photo
     await db.commit()
@@ -99,7 +102,7 @@ async def delete_restaurant(
         raise HTTPException(404, "restaurant not found")
 
     key = f"restaurants/{restaurant.id}"
-    await delete_object(key)
+    await s3_service.delete_object(key)
 
     await db.delete(restaurant)
     await db.commit()

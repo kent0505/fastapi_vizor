@@ -17,12 +17,16 @@ class Base(DeclarativeBase):
     id: Mapped[int] = mapped_column(primary_key=True)
 
 class DatabaseHelper:
-    def __init__(self):
+    def __init__(
+        self, 
+        url: str,
+        echo: bool = True,
+    ):
         self.engine = create_async_engine(
             # url="sqlite+aiosqlite:///sqlite.db", 
             # echo=False,
-            url=settings.db_url,
-            echo=True,
+            url=url,
+            echo=echo,
         )
         self.session = async_sessionmaker(
             bind=self.engine, 
@@ -46,6 +50,6 @@ class DatabaseHelper:
         async with self.session() as session:
             yield session
 
-db_helper = DatabaseHelper()
+db_helper = DatabaseHelper(url=settings.db_url)
 
 SessionDep = Annotated[AsyncSession, Depends(db_helper.get_db)]

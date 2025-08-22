@@ -17,6 +17,7 @@
                 <th>age</th>
                 <th>role</th>
                 <th>code</th>
+                <th>chat_id</th>
                 <th>fcm</th>
                 <th>photo</th>
             </tr>
@@ -30,6 +31,7 @@
                     <td>{{ user.age }}</td>
                     <td>{{ user.role }}</td>
                     <td>{{ user.code }}</td>
+                    <td>{{ user.chat_id }}</td>
                     <td>{{ user.fcm }}</td>
                     <td>{{ user.photo }}</td>
                 </tr>
@@ -63,7 +65,8 @@
                 <th>title</th>
                 <th>phone</th>
                 <th>address</th>
-                <th>latlon</th>
+                <th>lat</th>
+                <th>lon</th>
                 <th>hours</th>
                 <th>city</th>
                 <th>position</th>
@@ -78,7 +81,8 @@
                     <td>{{ restaurant.title }}</td>
                     <td>{{ restaurant.phone }}</td>
                     <td>{{ restaurant.address }}</td>
-                    <td>{{ restaurant.latlon }}</td>
+                    <td>{{ restaurant.lat }}</td>
+                    <td>{{ restaurant.lon }}</td>
                     <td>{{ restaurant.hours }}</td>
                     <td>{{ restaurant.city }}</td>
                     <td>{{ restaurant.position }}</td>
@@ -109,14 +113,14 @@
         </tbody>
     </table>
 
-    <h2>Hotspots</h2>
+    <h2>Tables</h2>
     <table>
         <thead>
             <tr>
                 <th>id</th>
                 <th>number</th>
-                <th>latlon</th>
-                <th>pid</th>
+                <th>rid</th>
+                <th>status</th>
             </tr>
         </thead>
         <tbody>
@@ -124,8 +128,32 @@
                 <tr>
                     <td>{{ hotspot.id }}</td>
                     <td>{{ hotspot.number }}</td>
-                    <td>{{ hotspot.latlon }}</td>
+                    <td>{{ hotspot.rid }}</td>
+                    <td>{{ hotspot.status }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Hotspots</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>lat</th>
+                <th>lon</th>
+                <th>pid</th>
+                <th>tid</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for hotspot in hotspots %}
+                <tr>
+                    <td>{{ hotspot.id }}</td>
+                    <td>{{ hotspot.lat }}</td>
+                    <td>{{ hotspot.lon }}</td>
                     <td>{{ hotspot.pid }}</td>
+                    <td>{{ hotspot.tid }}</td>
                 </tr>
             {% endfor %}
         </tbody>
