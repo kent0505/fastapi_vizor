@@ -35,7 +35,7 @@ async def add_panorama(
 
     return {"message": "panorama added"}
 
-@router.patch("/")
+@router.patch("/photo")
 async def edit_panorama_photo(
     id: int, 
     db: SessionDep,

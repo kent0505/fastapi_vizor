@@ -1,11 +1,11 @@
 from fastapi import Depends
 from contextlib import asynccontextmanager
-from sqlalchemy import select
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from pydantic import BaseModel
-from typing import Annotated, Optional
+from typing import Annotated
 from core.config import settings
+from pydantic import BaseModel
+from sqlalchemy import select
 
 class Base(DeclarativeBase):
     __abstract__ = True
@@ -17,16 +17,12 @@ class Base(DeclarativeBase):
     id: Mapped[int] = mapped_column(primary_key=True)
 
 class DatabaseHelper:
-    def __init__(
-        self, 
-        url: str,
-        echo: bool = True,
-    ):
+    def __init__(self, url: str):
         self.engine = create_async_engine(
             # url="sqlite+aiosqlite:///sqlite.db", 
             # echo=False,
             url=url,
-            echo=echo,
+            echo=False,
         )
         self.session = async_sessionmaker(
             bind=self.engine, 

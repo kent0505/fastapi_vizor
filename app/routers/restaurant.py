@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
+from typing import Optional
 from core.security import JWTBearer
 from core.s3 import s3_service
-from db import SessionDep, BaseModel, Optional, select
+from db import SessionDep, BaseModel, select
 from db.city import City
 from db.restaurant import Restaurant
 

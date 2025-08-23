@@ -1,15 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
-from enum import Enum
 from core.security import JWTBearer, Roles
 from db import SessionDep, BaseModel, select
-from db.table import RestaurantTable
+from db.table import RestaurantTable, TableStatus
 from db.restaurant import Restaurant
 
 router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.stuff))])
-
-class TableStatus(str, Enum):
-    available = "available"
-    reserved = "reserved"
 
 class RestaurantTableSchema(BaseModel):
     number: int

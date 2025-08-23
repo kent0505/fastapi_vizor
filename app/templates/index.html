@@ -124,12 +124,12 @@
             </tr>
         </thead>
         <tbody>
-            {% for hotspot in hotspots %}
+            {% for table in tables %}
                 <tr>
-                    <td>{{ hotspot.id }}</td>
-                    <td>{{ hotspot.number }}</td>
-                    <td>{{ hotspot.rid }}</td>
-                    <td>{{ hotspot.status }}</td>
+                    <td>{{ table.id }}</td>
+                    <td>{{ table.number }}</td>
+                    <td>{{ table.rid }}</td>
+                    <td>{{ table.status }}</td>
                 </tr>
             {% endfor %}
         </tbody>

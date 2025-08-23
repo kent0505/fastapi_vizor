@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.security import Roles, UserDep
 from core.s3 import s3_service
-from db import BaseModel, SessionDep, Optional, select
+from db import BaseModel, SessionDep, select
 from db.user import User
 
 router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.user))])
@@ -10,7 +10,7 @@ router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.user))])
 class UserSchema(BaseModel):
     name: str
     age: str
-    fcm: Optional[str] = None
+    fcm: str
 
 @router.get("/")
 async def get_user(

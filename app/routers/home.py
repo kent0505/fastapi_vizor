@@ -5,6 +5,7 @@ from db.user import User
 from db.city import City
 from db.restaurant import Restaurant
 from db.panorama import Panorama
+from db.table import RestaurantTable
 from db.hotspot import Hotspot
 from db.category import Category
 from db.menu import Menu
@@ -21,6 +22,7 @@ async def home(
     cities = (await db.scalars(select(City))).all()
     restaurants = (await db.scalars(select(Restaurant))).all()
     panoramas = (await db.scalars(select(Panorama))).all()
+    tables = (await db.scalars(select(RestaurantTable))).all()
     hotspots = (await db.scalars(select(Hotspot))).all()
     categories = (await db.scalars(select(Category))).all()
     menus = (await db.scalars(select(Menu))).all()
@@ -32,6 +34,7 @@ async def home(
             "cities": cities,
             "restaurants": restaurants,
             "panoramas": panoramas,
+            "tables": tables,
             "hotspots": hotspots,
             "categories": categories,
             "menus": menus,
