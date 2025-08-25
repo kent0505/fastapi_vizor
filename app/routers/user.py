@@ -27,6 +27,7 @@ async def get_user(
             "phone": user.phone,
             "name": user.name,
             "age": user.age,
+            "role": user.role,
             "photo": user.photo,
         }
     }

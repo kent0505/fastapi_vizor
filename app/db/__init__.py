@@ -19,10 +19,10 @@ class Base(DeclarativeBase):
 class DatabaseHelper:
     def __init__(self, url: str):
         self.engine = create_async_engine(
-            # url="sqlite+aiosqlite:///sqlite.db", 
-            # echo=False,
-            url=url,
+            url="sqlite+aiosqlite:///sqlite.db", 
             echo=False,
+            # url=url,
+            # echo=False,
         )
         self.session = async_sessionmaker(
             bind=self.engine, 

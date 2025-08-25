@@ -19,6 +19,10 @@ async def add_table(
     restaurant = await db.scalar(select(Restaurant).filter_by(id=body.rid))
     if not restaurant:
         raise HTTPException(404, "restaurant not found")
+    
+    table = await db.scalar(select(RestaurantTable).filter_by(number=body.number, rid=body.rid))
+    if table:
+        raise HTTPException(400, "table number exists")
 
     table = RestaurantTable(
         number=body.number,

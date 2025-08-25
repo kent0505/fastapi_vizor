@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
 from db import SessionDep, BaseModel, select
+from db.restaurant import Restaurant
 from db.panorama import Panorama
 from db.hotspot import Hotspot
 from db.table import RestaurantTable
@@ -10,6 +11,7 @@ router = APIRouter(dependencies=[Depends(JWTBearer())])
 class HotspotSchema(BaseModel):
     lat: str
     lon: str
+    rid: int
     pid: int
     tid: int
 
@@ -22,6 +24,10 @@ async def add_hotspot(
     body: HotspotSchema,
     db: SessionDep,
 ):
+    restaurant = await db.scalar(select(Restaurant).filter_by(id=body.pid))
+    if not restaurant:
+        raise HTTPException(404, "restaurant not found")
+
     panorama = await db.scalar(select(Panorama).filter_by(id=body.pid))
     if not panorama:
         raise HTTPException(404, "panorama not found")
@@ -36,6 +42,7 @@ async def add_hotspot(
     hotspot = Hotspot(
         lat=body.lat,
         lon=body.lon,
+        rid=body.rid,
         pid=body.pid,
         tid=body.tid,
     )

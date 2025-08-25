@@ -16,6 +16,15 @@ class RestaurantSchema(BaseModel):
     lon: str
     hours: str
     city: int
+
+class RestaurantUpdateSchema(BaseModel):
+    title: str
+    phone: str
+    address: str
+    lat: str
+    lon: str
+    hours: str
+    city: int
     position: Optional[int] = None
     status: Optional[int] = None
 
@@ -35,9 +44,7 @@ async def add_restaurant(
         lat=body.lat,
         lon=body.lon,
         hours=body.hours,
-        city=body.city,
-        position=body.position,
-        status=body.status,   
+        city=body.city,  
     )
     db.add(restaurant)
     await db.commit()
@@ -47,7 +54,7 @@ async def add_restaurant(
 @router.put("/")
 async def edit_restaurant(
     id: int,
-    body: RestaurantSchema,
+    body: RestaurantUpdateSchema,
     db: SessionDep,
 ):
     restaurant = await db.scalar(select(Restaurant).filter_by(id=id))

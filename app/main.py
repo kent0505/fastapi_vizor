@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from core.config import settings
-from core.broker import broker
+# from core.broker import broker
 from db import db_helper
 from routers.auth import router as auth_router
 from routers.home import router as home_router
@@ -26,9 +26,9 @@ import logging
 async def lifespan(_: FastAPI):
     logging.basicConfig(level=logging.INFO)
     await db_helper.create_all()
-    await broker.start()
+    # await broker.start()
     yield
-    await broker.stop()
+    # await broker.stop()
     await db_helper.dispose()
 
 app = FastAPI(

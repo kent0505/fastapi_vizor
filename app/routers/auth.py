@@ -1,67 +1,67 @@
 from fastapi import APIRouter, HTTPException
 from core.security import Roles, signJWT
 from core.config import settings
-from core.broker import Queue, broker
 from core.utils import get_timestamp, generate_code
-from db import SessionDep, BaseModel, select, db_helper
+from core.sms import sms_service
+from db import SessionDep, BaseModel, select
 from db.user import User
 
 router = APIRouter()
 
-class MessageSchema(BaseModel):
-    chat_id: int
-    code: str
+class AdminSchema(BaseModel):
+    name: str = "Otabek"
+    phone: str = "+998998472580"
 
-class ContactSchema(BaseModel):
-    chat_id: int
-    phone: str
+class PhoneSchema(BaseModel):
+    phone: str = "+998998472580"
 
 class LoginSchema(BaseModel):
     phone: str = "+998998472580"
     code: str
 
-@broker.subscriber(Queue.contacts.value)
-async def handle_contacts(data: str):
-    contact = ContactSchema.model_validate_json(data)
+@router.post("/admin")
+async def create_admin(
+    body: AdminSchema,
+    db: SessionDep,
+):
+    user = await db.scalar(select(User).filter_by(role=Roles.admin.value))
+    if user:
+        raise HTTPException(400, "admin exists")
 
-    async with db_helper.get_session() as db:
-        user = await db.scalar(select(User).filter_by(phone=contact.phone))
+    user = User(
+        name=body.name,
+        phone=body.phone,
+        role=Roles.admin.value,
+    )
+    db.add(user)
+    await db.commit()
 
-        code = str(generate_code())
+    return {"message": "admin created"}
 
-        if user:
-            user.code = code
-        else:
-            admin = await db.scalar(select(User).filter_by(role=Roles.admin.value))
+@router.post("/send_code")
+async def send_code(
+    body: PhoneSchema,
+    db: SessionDep,
+):
+    code = str(generate_code())
 
-            if admin:
-                user = User(
-                    phone=contact.phone,
-                    role=Roles.user.value,
-                    code=code,
-                    chat_id=contact.chat_id,
-                )
-            else:
-                user = User(
-                    name="Admin",
-                    phone=contact.phone,
-                    role=Roles.admin.value,
-                    code=code,
-                    chat_id=contact.chat_id,
-                )
+    # await sms_service.send_sms(body.phone, code)
 
-            db.add(user)
+    user = await db.scalar(select(User).filter_by(phone=body.phone))
 
-        await db.commit()
-
-        message = MessageSchema(
-            chat_id=contact.chat_id,
+    if user:
+        user.code = code
+    else:
+        user = User(
+            phone=body.phone,
             code=code,
+            role=Roles.user.value,
         )
-        await broker.publish(
-            message.model_dump_json(),
-            queue=Queue.codes.value,
-        )
+        db.add(user)
+
+    await db.commit()
+
+    return {"message": "sms code sent"}
 
 @router.post("/login")
 async def login(
@@ -92,3 +92,54 @@ async def login(
         "access_token": access_token,
         "role": user.role,
     }
+
+# class MessageSchema(BaseModel):
+#     chat_id: int
+#     code: str
+
+# class ContactSchema(BaseModel):
+#     chat_id: int
+#     phone: str
+
+# @broker.subscriber(Queue.contacts.value)
+# async def handle_contacts(data: str):
+#     contact = ContactSchema.model_validate_json(data)
+
+#     async with db_helper.get_session() as db:
+#         user = await db.scalar(select(User).filter_by(phone=contact.phone))
+
+#         code = str(generate_code())
+
+#         if user:
+#             user.code = code
+#         else:
+#             admin = await db.scalar(select(User).filter_by(role=Roles.admin.value))
+
+#             if admin:
+#                 user = User(
+#                     phone=contact.phone,
+#                     role=Roles.user.value,
+#                     code=code,
+#                     # chat_id=contact.chat_id,
+#                 )
+#             else:
+#                 user = User(
+#                     name="Admin",
+#                     phone=contact.phone,
+#                     role=Roles.admin.value,
+#                     code=code,
+#                     # chat_id=contact.chat_id,
+#                 )
+
+#             db.add(user)
+
+#         await db.commit()
+
+#         message = MessageSchema(
+#             chat_id=contact.chat_id,
+#             code=code,
+#         )
+#         await broker.publish(
+#             message.model_dump_json(),
+#             queue=Queue.codes.value,
+#         )

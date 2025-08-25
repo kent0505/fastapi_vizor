@@ -21,16 +21,9 @@ async def get_restaurants(
     city: int,
     db: SessionDep,
 ):
-    restaurants = (await db.scalars(
-        select(Restaurant)
-        .filter_by(city=city)
-        .order_by(Restaurant.position)
-    )).all()
+    restaurants = (await db.scalars(select(Restaurant).filter_by(city=city))).all()
 
-    return {
-        "city": city,
-        "restaurants": restaurants,
-    }
+    return {"restaurants": restaurants}
 
 @router.get("/panoramas")
 async def get_panoramas(
@@ -39,34 +32,25 @@ async def get_panoramas(
 ):
     panoramas = (await db.scalars(select(Panorama).filter_by(rid=rid))).all()
 
-    return {
-        "rid": rid,
-        "panoramas": panoramas,
-    }
+    return {"panoramas": panoramas}
 
 @router.get("/tables")
-async def get_panoramas(
+async def get_tables(
     rid: int,
     db: SessionDep,
 ):
     tables = (await db.scalars(select(RestaurantTable).filter_by(rid=rid))).all()
 
-    return {
-        "rid": rid,
-        "tables": tables,
-    }
+    return {"tables": tables}
 
 @router.get("/hotspots")
 async def get_hotspots(
-    pid: int,
+    rid: int,
     db: SessionDep,
 ):
-    hotspots = (await db.scalars(select(Hotspot).filter_by(pid=pid))).all()
+    hotspots = (await db.scalars(select(Hotspot).filter_by(rid=rid))).all()
 
-    return {
-        "pid": pid,
-        "hotspots": hotspots,
-    }
+    return {"hotspots": hotspots}
 
 @router.get("/categories")
 async def get_categories(db: SessionDep):
@@ -81,7 +65,4 @@ async def get_menus(
 ):
     menus = (await db.scalars(select(Menu).filter_by(rid=rid))).all()
 
-    return {
-        "rid": rid,
-        "menus": menus,
-    }
+    return {"menus": menus}

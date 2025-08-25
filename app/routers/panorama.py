@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
-from core.utils import get_timestamp
 from core.s3 import s3_service
 from db import SessionDep, BaseModel, select
 from db.restaurant import Restaurant
@@ -21,16 +20,17 @@ async def add_panorama(
     restaurant = await db.scalar(select(Restaurant).filter_by(id=rid))
     if not restaurant:
         raise HTTPException(404, "restaurant not found")
+    
+    panorama = Panorama(rid=rid, photo="")
+    db.add(panorama)
+    await db.commit()
+    await db.refresh(panorama)
 
-    key = f"panoramas/{get_timestamp()}"
+    key = f"panoramas/{panorama.id}"
 
     photo = await s3_service.put_object(key, file)
 
-    panorama = Panorama(
-        rid=rid,
-        photo=photo,
-    )
-    db.add(panorama)
+    panorama.photo = photo
     await db.commit()
 
     return {"message": "panorama added"}
