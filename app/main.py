@@ -89,3 +89,8 @@ if __name__ == "__main__":
 # docker-compose up -d
 # docker build -t fastapi .
 # docker run -p 8000:8000 fastapi
+
+# ALEMBIC
+# alembic init migrations
+# alembic revision --autogenerate -m "init schema"
+# alembic upgrade head
