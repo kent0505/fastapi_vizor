@@ -1,12 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
-from db import SessionDep, BaseModel, select
-from db.city import City
+from db import SessionDep, select
+from db.city import City, CitySchema
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
-
-class CitySchema(BaseModel):
-    name: str
 
 @router.post("/")
 async def add_city(

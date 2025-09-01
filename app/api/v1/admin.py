@@ -1,15 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
 from core.security import Roles, UserDep
-from db import SessionDep, BaseModel, select
-from db.user import User
+from db import SessionDep, select
+from db.user import User, UserSchema
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
-
-class UserSchema(BaseModel):
-    phone: str
-    name: str
-    age: str
 
 @router.get("/")
 async def get_users(db: SessionDep):

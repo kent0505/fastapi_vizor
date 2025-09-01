@@ -2,22 +2,10 @@ from fastapi import APIRouter, HTTPException
 from core.security import Roles, signJWT
 from core.config import settings
 from core.utils import get_timestamp, generate_code
-from core.sms import sms_service
-from db import SessionDep, BaseModel, select
-from db.user import User
+from db import SessionDep, select
+from db.user import User, AdminSchema, PhoneSchema, LoginSchema
 
 router = APIRouter()
-
-class AdminSchema(BaseModel):
-    name: str = "Otabek"
-    phone: str = "+998998472580"
-
-class PhoneSchema(BaseModel):
-    phone: str = "+998998472580"
-
-class LoginSchema(BaseModel):
-    phone: str = "+998998472580"
-    code: str
 
 @router.post("/admin")
 async def create_admin(

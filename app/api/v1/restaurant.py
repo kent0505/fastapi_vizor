@@ -1,32 +1,11 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
-from typing import Optional
 from core.security import JWTBearer
 from core.s3 import s3_service
-from db import SessionDep, BaseModel, select
+from db import SessionDep, select
 from db.city import City
-from db.restaurant import Restaurant
+from db.restaurant import Restaurant, RestaurantSchema, RestaurantStatus
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
-
-class RestaurantSchema(BaseModel):
-    title: str
-    phone: str
-    address: str
-    lat: str
-    lon: str
-    hours: str
-    city: int
-
-class RestaurantUpdateSchema(BaseModel):
-    title: str
-    phone: str
-    address: str
-    lat: str
-    lon: str
-    hours: str
-    city: int
-    position: Optional[int] = None
-    status: Optional[int] = None
 
 @router.post("/")
 async def add_restaurant(
@@ -54,7 +33,7 @@ async def add_restaurant(
 @router.put("/")
 async def edit_restaurant(
     id: int,
-    body: RestaurantUpdateSchema,
+    body: RestaurantSchema,
     db: SessionDep,
 ):
     restaurant = await db.scalar(select(Restaurant).filter_by(id=id))
@@ -72,11 +51,39 @@ async def edit_restaurant(
     restaurant.lon = body.lon
     restaurant.hours = body.hours
     restaurant.city = body.city
-    restaurant.position = body.position
-    restaurant.status = body.status
     await db.commit()
 
     return {"message": "restaurant updated"}
+
+@router.patch("/position")
+async def edit_restaurant_position(
+    id: int, 
+    position: int,
+    db: SessionDep,
+):
+    restaurant = await db.scalar(select(Restaurant).filter_by(id=id))
+    if not restaurant:
+        raise HTTPException(404, "restaurant not found")
+
+    restaurant.position = position
+    await db.commit()
+
+    return {"message": "restaurant position updated"}
+
+@router.patch("/status")
+async def edit_restaurant_status(
+    id: int, 
+    status: RestaurantStatus,
+    db: SessionDep,
+):
+    restaurant = await db.scalar(select(Restaurant).filter_by(id=id))
+    if not restaurant:
+        raise HTTPException(404, "restaurant not found")
+
+    restaurant.status = status.value
+    await db.commit()
+
+    return {"message": "restaurant status updated"}
 
 @router.patch("/photo")
 async def edit_restaurant_photo(

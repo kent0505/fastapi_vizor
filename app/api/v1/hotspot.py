@@ -1,23 +1,12 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
-from db import SessionDep, BaseModel, select
+from db import SessionDep, select
 from db.restaurant import Restaurant
 from db.panorama import Panorama
-from db.hotspot import Hotspot
+from db.hotspot import Hotspot, HotspotSchema, CoordinatesSchema
 from db.table import RestaurantTable
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
-
-class HotspotSchema(BaseModel):
-    lat: str
-    lon: str
-    rid: int
-    pid: int
-    tid: int
-
-class CoordinatesSchema(BaseModel):
-    lat: str
-    lon: str
 
 @router.post("/")
 async def add_hotspot(

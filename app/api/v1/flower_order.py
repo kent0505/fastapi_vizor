@@ -1,16 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer, Roles, UserDep
 from core.utils import get_timestamp
-from db import SessionDep, BaseModel, select
+from db import SessionDep, select
 from db.flower import Flower
-from db.flower_order import FlowerOrder, FlowerOrderStatus
+from db.flower_order import FlowerOrder, FlowerOrderSchema, FlowerOrderStatus
 
 router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.user))])
-
-class FlowerOrderSchema(BaseModel):
-    fid: int
-    lat: str
-    lon: str
 
 @router.post("/")
 async def add_flower_order(
@@ -35,19 +30,19 @@ async def add_flower_order(
 
     return {"message": "flower order added"}
 
-@router.delete("/")
-async def cancel_flower_order(
-    id,
-    db: SessionDep,
-):
-    order = await db.scalar(select(FlowerOrder).filter_by(id=id))
-    if not order:
-        raise HTTPException(404, "flower order not found")
+# @router.delete("/")
+# async def cancel_flower_order(
+#     id,
+#     db: SessionDep,
+# ):
+#     order = await db.scalar(select(FlowerOrder).filter_by(id=id))
+#     if not order:
+#         raise HTTPException(404, "flower order not found")
 
-    db.delete(order)
-    await db.commit()
+#     db.delete(order)
+#     await db.commit()
 
-    return {"message": "flower order deleted"}
+#     return {"message": "flower order deleted"}
 
 # @router.put("/")
 # async def edit_flower(

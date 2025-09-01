@@ -1,3 +1,5 @@
+from pydantic import BaseModel
+from enum import Enum
 from db import Base, Mapped, mapped_column
 
 class Restaurant(Base):
@@ -8,6 +10,19 @@ class Restaurant(Base):
     lon: Mapped[str] = mapped_column()
     hours: Mapped[str] = mapped_column()
     city: Mapped[int] = mapped_column() # city id
-    position: Mapped[int] = mapped_column(nullable=True)
-    status: Mapped[int] = mapped_column(nullable=True)
+    position: Mapped[int] = mapped_column(default=0)
+    status: Mapped[str] = mapped_column(default=0)
     photo: Mapped[str] = mapped_column(nullable=True)
+
+class RestaurantSchema(BaseModel):
+    title: str
+    phone: str
+    address: str
+    lat: str
+    lon: str
+    hours: str
+    city: int
+
+class RestaurantStatus(str, Enum):
+    active = "active"
+    disabled = "disabled"

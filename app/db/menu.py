@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from db import Base, Mapped, mapped_column
 
 class Menu(Base):
@@ -8,3 +9,11 @@ class Menu(Base):
     cid: Mapped[int] = mapped_column() # category id
     rid: Mapped[int] = mapped_column() # restaurant id
     photo: Mapped[str] = mapped_column(nullable=True)
+
+class MenuSchema(BaseModel):
+    title: str
+    description: str
+    price: str
+    currency: str
+    cid: int
+    rid: int

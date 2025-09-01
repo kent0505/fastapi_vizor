@@ -1,20 +1,13 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.s3 import s3_service
-from db import SessionDep, BaseModel, select
+from db import SessionDep, select
 from db.restaurant import Restaurant
 from db.category import Category
-from db.menu import Menu
+from db.menu import Menu, MenuSchema
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
 
-class MenuSchema(BaseModel):
-    title: str
-    description: str
-    price: str
-    currency: str
-    cid: int
-    rid: int
 
 @router.post("/")
 async def add_menu(

@@ -1,14 +1,10 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer, Roles
-from db import SessionDep, BaseModel, select
-from db.flower import Flower
+from db import SessionDep, select
+from db.flower import Flower, FlowerSchema
 from core.s3 import s3_service
 
 router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.stuff))])
-
-class FlowerSchema(BaseModel):
-    title: str
-    price: str
 
 @router.post("/")
 async def add_flower(

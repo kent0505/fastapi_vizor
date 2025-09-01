@@ -1,14 +1,10 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer, Roles
-from db import SessionDep, BaseModel, select
-from db.table import RestaurantTable, TableStatus
+from db import SessionDep, select
+from db.table import RestaurantTable, RestaurantTableSchema, TableStatus
 from db.restaurant import Restaurant
 
 router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.stuff))])
-
-class RestaurantTableSchema(BaseModel):
-    number: int
-    rid: int
 
 @router.post("/")
 async def add_table(

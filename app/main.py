@@ -3,20 +3,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from core.config import settings
-from db import db_helper
-from routers.auth import router as auth_router
-from routers.home import router as home_router
-from routers.client import router as client_router
-from routers.user import router as user_router
-from routers.admin import router as admin_router
-from routers.city import router as city_router
-from routers.restaurant import router as restaurant_router
-from routers.panorama import router as panorama_router
-from routers.table import router as table_router
-from routers.hotspot import router as hotspot_router
-from routers.category import router as category_router
-from routers.menu import router as menu_router
-from routers.flower import router as flower_router
+from db import engine
+from home import router as home_router
+from api.v1.auth import router as auth_router
+from api.v1.client import router as client_router
+from api.v1.user import router as user_router
+from api.v1.admin import router as admin_router
+from api.v1.city import router as city_router
+from api.v1.restaurant import router as restaurant_router
+from api.v1.panorama import router as panorama_router
+from api.v1.table import router as table_router
+from api.v1.hotspot import router as hotspot_router
+from api.v1.category import router as category_router
+from api.v1.menu import router as menu_router
+from api.v1.flower import router as flower_router
 
 import uvicorn
 import logging
@@ -25,7 +25,7 @@ import logging
 async def lifespan(_: FastAPI):
     logging.basicConfig(level=logging.INFO)
     yield
-    await db_helper.dispose()
+    await engine.dispose()
 
 app = FastAPI(
     title="Vizor",

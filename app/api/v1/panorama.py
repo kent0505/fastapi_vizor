@@ -1,15 +1,11 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer
 from core.s3 import s3_service
-from db import SessionDep, BaseModel, select
+from db import SessionDep, select
 from db.restaurant import Restaurant
 from db.panorama import Panorama
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
-
-class PanoramaSchema(BaseModel):
-    rid: int
-    photo: str
 
 @router.post("/")
 async def add_panorama(
@@ -21,7 +17,7 @@ async def add_panorama(
     if not restaurant:
         raise HTTPException(404, "restaurant not found")
     
-    panorama = Panorama(rid=rid, photo="")
+    panorama = Panorama(rid=rid)
     db.add(panorama)
     await db.commit()
     await db.refresh(panorama)

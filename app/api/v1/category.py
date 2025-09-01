@@ -1,12 +1,9 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
-from db import SessionDep, BaseModel, select
-from db.category import Category
+from db import SessionDep, select
+from db.category import Category, CategorySchema
 
 router = APIRouter(dependencies=[Depends(JWTBearer())])
-
-class CategorySchema(BaseModel):
-    name: str
 
 @router.post("/")
 async def add_category(

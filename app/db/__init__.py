@@ -1,10 +1,8 @@
 from fastapi import Depends
-from contextlib import asynccontextmanager
+from typing import Annotated
 from sqlalchemy.orm import DeclarativeBase, declared_attr, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-from typing import Annotated
 from core.config import settings
-from pydantic import BaseModel
 from sqlalchemy import select
 
 class Base(DeclarativeBase):
@@ -16,36 +14,19 @@ class Base(DeclarativeBase):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-class DatabaseHelper:
-    def __init__(self, url: str):
-        self.engine = create_async_engine(
-            # url="sqlite+aiosqlite:///sqlite.db", 
-            # echo=False,
-            url=url,
-            echo=False,
-        )
-        self.session = async_sessionmaker(
-            bind=self.engine, 
-            autoflush=False, 
-            expire_on_commit=False,
-        )
-    
-    async def create_all(self):
-        async with self.engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+engine = create_async_engine(
+    # url="sqlite+aiosqlite:///sqlite.db",
+    url=settings.db_url,
+)
 
-    async def dispose(self):
-        await self.engine.dispose()
+async_session = async_sessionmaker(
+    bind=engine,
+    autoflush=False,
+    expire_on_commit=False,
+)
 
-    async def get_db(self):
-        async with self.session() as session:
-            yield session
+async def get_session():
+    async with async_session() as session:
+        yield session
 
-    @asynccontextmanager
-    async def get_session(self):
-        async with self.session() as session:
-            yield session
-
-db_helper = DatabaseHelper(url=settings.db_url)
-
-SessionDep = Annotated[AsyncSession, Depends(db_helper.get_db)]
+SessionDep = Annotated[AsyncSession, Depends(get_session)]

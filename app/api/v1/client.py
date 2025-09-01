@@ -7,6 +7,7 @@ from db.table import RestaurantTable
 from db.hotspot import Hotspot
 from db.category import Category
 from db.menu import Menu
+from db.flower import Flower
 
 router = APIRouter()
 
@@ -21,7 +22,7 @@ async def get_restaurants(
     city: int,
     db: SessionDep,
 ):
-    restaurants = (await db.scalars(select(Restaurant).filter_by(city=city))).all()
+    restaurants = (await db.scalars(select(Restaurant).filter_by(city=city, status=None))).all()
 
     return {"restaurants": restaurants}
 
@@ -66,3 +67,9 @@ async def get_menus(
     menus = (await db.scalars(select(Menu).filter_by(rid=rid))).all()
 
     return {"menus": menus}
+
+@router.get("/flowers")
+async def get_flowers(db: SessionDep):
+    flowers = (await db.scalars(select(Flower))).all()
+
+    return {"flowers": flowers}
