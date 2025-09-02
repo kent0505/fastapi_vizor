@@ -21,8 +21,20 @@ async def home(
     db: SessionDep,
 ):
     users = (await db.scalars(select(User))).all()
-    cities = (await db.scalars(select(City))).all()
-    restaurants = (await db.scalars(select(Restaurant))).all()
+    cities = (await db.scalars(
+        select(City)
+        .order_by(
+            City.position.desc(), 
+            City.id.asc(),
+        ),
+    )).all()
+    restaurants = (await db.scalars(
+        select(Restaurant)
+        .order_by(
+            Restaurant.position.desc(), 
+            Restaurant.id.asc(),
+        ),
+    )).all()
     panoramas = (await db.scalars(select(Panorama))).all()
     tables = (await db.scalars(select(RestaurantTable))).all()
     hotspots = (await db.scalars(select(Hotspot))).all()

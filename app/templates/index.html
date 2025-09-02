@@ -43,13 +43,15 @@
             <tr>
                 <th>id</th>
                 <th>name</th>
+                <th>position</th>
             </tr>
         </thead>
         <tbody>
-            {% for user in cities %}
+            {% for city in cities %}
                 <tr>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.name }}</td>
+                    <td>{{ city.id }}</td>
+                    <td>{{ city.name }}</td>
+                    <td>{{ city.position }}</td>
                 </tr>
             {% endfor %}
         </tbody>

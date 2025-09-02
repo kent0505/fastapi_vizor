@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from db import SessionDep, select
 from db.city import City
-from db.restaurant import Restaurant
+from db.restaurant import Restaurant, RestaurantStatus
 from db.panorama import Panorama
 from db.table import RestaurantTable
 from db.hotspot import Hotspot
@@ -13,7 +13,12 @@ router = APIRouter()
 
 @router.get("/cities")
 async def get_cities(db: SessionDep):
-    cities = (await db.scalars(select(City))).all()
+    cities = (await db.scalars(
+        select(City)
+        .order_by(
+            City.position.desc(), 
+            City.id.asc(),
+        ),)).all()
 
     return {"cities": cities}
 
@@ -22,7 +27,17 @@ async def get_restaurants(
     city: int,
     db: SessionDep,
 ):
-    restaurants = (await db.scalars(select(Restaurant).filter_by(city=city, status=None))).all()
+    restaurants = (await db.scalars(
+        select(Restaurant)
+        .filter_by(
+            city=city, 
+            status=RestaurantStatus.active.value,
+        )
+        .order_by(
+            Restaurant.position.desc(), 
+            Restaurant.id.asc(),
+        ),
+    )).all()
 
     return {"restaurants": restaurants}
 

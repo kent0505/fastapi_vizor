@@ -31,6 +31,21 @@ async def edit_city(
 
     return {"message": "city updated"}
 
+@router.patch("/position")
+async def edit_city_position(
+    id: int,
+    position: int,
+    db: SessionDep,
+):
+    city = await db.scalar(select(City).filter_by(id=id))
+    if not city:
+        raise HTTPException(404, "city not found")
+
+    city.position = position
+    await db.commit()
+
+    return {"message": "city position updated"}
+
 @router.delete("/")
 async def delete_city(
     id: int,
