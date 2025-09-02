@@ -228,5 +228,37 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <h2>Flower Orders</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>id</th>
+                <th>uid</th>
+                <th>fid</th>
+                <th>lat</th>
+                <th>lon</th>
+                <th>date</th>
+                <th>note</th>
+                <th>message</th>
+                <th>status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in flower_orders %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.uid }}</td>
+                    <td>{{ user.fid }}</td>
+                    <td>{{ user.lat }}</td>
+                    <td>{{ user.lon }}</td>
+                    <td>{{ user.date }}</td>
+                    <td>{{ user.note }}</td>
+                    <td>{{ user.message }}</td>
+                    <td>{{ user.status }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>

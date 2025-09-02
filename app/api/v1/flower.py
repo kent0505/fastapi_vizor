@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from core.security import JWTBearer, Roles
+from core.s3 import s3_service
 from db import SessionDep, select
 from db.flower import Flower, FlowerSchema
-from core.s3 import s3_service
+from db.flower_order import FlowerOrder, FlowerOrderStatus
 
 router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.stuff))])
 
@@ -57,6 +58,23 @@ async def edit_flower_photo(
         "message": "flower photo added",
         "photo": photo,
     }
+
+@router.patch("/order_status")
+async def change_flower_order_status(
+    id: int, 
+    message: str,
+    status: FlowerOrderStatus,
+    db: SessionDep,
+):
+    order = await db.scalar(select(FlowerOrder).filter_by(id=id))
+    if not order:
+        raise HTTPException(404, "flower order not found")
+
+    order.message = message
+    order.status = status.value
+    await db.commit()
+
+    return {"message": "flower order status changed"}
 
 @router.delete("/")
 async def delete_flower(

@@ -43,7 +43,6 @@ async def send_code(
         user = User(
             phone=body.phone,
             code=code,
-            role=Roles.user.value,
         )
         db.add(user)
 

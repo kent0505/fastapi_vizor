@@ -13,6 +13,7 @@ from db.hotspot import Hotspot
 from db.category import Category
 from db.menu import Menu
 from db.flower import Flower
+from db.flower_order import FlowerOrder
 
 config = context.config
 

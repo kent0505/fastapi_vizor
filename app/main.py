@@ -17,6 +17,7 @@ from api.v1.hotspot import router as hotspot_router
 from api.v1.category import router as category_router
 from api.v1.menu import router as menu_router
 from api.v1.flower import router as flower_router
+from api.v1.flower_order import router as flower_order_router
 
 import uvicorn
 import logging
@@ -59,6 +60,7 @@ app.include_router(hotspot_router, prefix="/api/v1/hotspot", tags=["Hotspot"])
 app.include_router(category_router, prefix="/api/v1/category", tags=["Category"])
 app.include_router(menu_router, prefix="/api/v1/menu", tags=["Menu"])
 app.include_router(flower_router, prefix="/api/v1/flower", tags=["Flower"])
+app.include_router(flower_order_router, prefix="/api/v1/flower_order", tags=["Flower Order"])
 
 if __name__ == "__main__":
     uvicorn.run(

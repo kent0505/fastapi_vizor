@@ -10,6 +10,7 @@ from db.hotspot import Hotspot
 from db.category import Category
 from db.menu import Menu
 from db.flower import Flower
+from db.flower_order import FlowerOrder
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -28,6 +29,7 @@ async def home(
     categories = (await db.scalars(select(Category))).all()
     menus = (await db.scalars(select(Menu))).all()
     flowers = (await db.scalars(select(Flower))).all()
+    flower_orders = (await db.scalars(select(FlowerOrder))).all()
 
     return templates.TemplateResponse(
         "index.html", {
@@ -41,5 +43,6 @@ async def home(
             "categories": categories,
             "menus": menus,
             "flowers": flowers,
+            "flower_orders": flower_orders,
         }
     )

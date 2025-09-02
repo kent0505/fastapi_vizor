@@ -49,7 +49,7 @@ async def edit_panorama_photo(
     await db.commit()
 
     return {
-        "message": "panorama photo added",
+        "message": "panorama photo updated",
         "photo": photo,
     }
 

@@ -1,11 +1,12 @@
 from pydantic import BaseModel
 from db import Base, Mapped, mapped_column
+from core.security import Roles
 
 class User(Base):
     phone: Mapped[str] = mapped_column(unique=True)
     name: Mapped[str] = mapped_column(nullable=True)
     age: Mapped[str] = mapped_column(nullable=True)
-    role: Mapped[str] = mapped_column(nullable=True) # admin, stuff, user
+    role: Mapped[str] = mapped_column(default=Roles.user.value) # admin, stuff, user
     code: Mapped[str] = mapped_column(nullable=True)
     fcm: Mapped[str] = mapped_column(nullable=True)
     photo: Mapped[str] = mapped_column(nullable=True)
