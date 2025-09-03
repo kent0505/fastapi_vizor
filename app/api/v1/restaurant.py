@@ -23,9 +23,14 @@ async def add_restaurant(
         lat=body.lat,
         lon=body.lon,
         hours=body.hours,
-        city=body.city,  
+        city=body.city,
     )
     db.add(restaurant)
+
+    await db.commit()
+    await db.refresh(restaurant)
+
+    restaurant.photo = f"restaurants/{restaurant.id}.jpg"
     await db.commit()
 
     return {"message": "restaurant added"}
@@ -116,8 +121,7 @@ async def delete_restaurant(
     if not restaurant:
         raise HTTPException(404, "restaurant not found")
 
-    key = f"restaurants/{restaurant.id}"
-    await s3_service.delete_object(key)
+    await s3_service.delete_object(restaurant.photo)
 
     await db.delete(restaurant)
     await db.commit()

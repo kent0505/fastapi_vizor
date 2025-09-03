@@ -31,6 +31,21 @@ async def edit_category(
 
     return {"message": "category updated"}
 
+@router.patch("/position")
+async def edit_category_position(
+    id: int,
+    position: int,
+    db: SessionDep,
+):
+    category = await db.scalar(select(Category).filter_by(id=id))
+    if not category:
+        raise HTTPException(404, "category not found")
+
+    category.position = position
+    await db.commit()
+
+    return {"message": "category position updated"}
+
 @router.delete("/")
 async def delete_category(
     id: int,

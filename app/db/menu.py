@@ -8,7 +8,7 @@ class Menu(Base):
     currency: Mapped[str] = mapped_column()
     cid: Mapped[int] = mapped_column() # category id
     rid: Mapped[int] = mapped_column() # restaurant id
-    photo: Mapped[str] = mapped_column(nullable=True)
+    photo: Mapped[str] = mapped_column()
 
 class MenuSchema(BaseModel):
     title: str

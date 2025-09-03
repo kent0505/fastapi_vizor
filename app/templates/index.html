@@ -167,13 +167,15 @@
             <tr>
                 <th>id</th>
                 <th>name</th>
+                <th>position</th>
             </tr>
         </thead>
         <tbody>
-            {% for user in categories %}
+            {% for category in categories %}
                 <tr>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.name }}</td>
+                    <td>{{ category.id }}</td>
+                    <td>{{ category.name }}</td>
+                    <td>{{ category.position }}</td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -220,12 +222,12 @@
             </tr>
         </thead>
         <tbody>
-            {% for user in flowers %}
+            {% for flower in flowers %}
                 <tr>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.title }}</td>
-                    <td>{{ user.price }}</td>
-                    <td>{{ user.photo }}</td>
+                    <td>{{ flower.id }}</td>
+                    <td>{{ flower.title }}</td>
+                    <td>{{ flower.price }}</td>
+                    <td>{{ flower.photo }}</td>
                 </tr>
             {% endfor %}
         </tbody>
@@ -247,17 +249,17 @@
             </tr>
         </thead>
         <tbody>
-            {% for user in flower_orders %}
+            {% for order in flower_orders %}
                 <tr>
-                    <td>{{ user.id }}</td>
-                    <td>{{ user.uid }}</td>
-                    <td>{{ user.fid }}</td>
-                    <td>{{ user.lat }}</td>
-                    <td>{{ user.lon }}</td>
-                    <td>{{ user.date }}</td>
-                    <td>{{ user.note }}</td>
-                    <td>{{ user.message }}</td>
-                    <td>{{ user.status }}</td>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.uid }}</td>
+                    <td>{{ order.fid }}</td>
+                    <td>{{ order.lat }}</td>
+                    <td>{{ order.lon }}</td>
+                    <td>{{ order.date }}</td>
+                    <td>{{ order.note }}</td>
+                    <td>{{ order.message }}</td>
+                    <td>{{ order.status }}</td>
                 </tr>
             {% endfor %}
         </tbody>

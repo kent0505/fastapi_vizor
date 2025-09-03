@@ -32,6 +32,10 @@ async def add_menu(
     )
     db.add(menu)
     await db.commit()
+    await db.refresh(menu)
+
+    menu.photo = f"menus/{menu.id}.jpg"
+    await db.commit()
 
     return {"message": "menu added"}
 

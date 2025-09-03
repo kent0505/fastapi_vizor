@@ -15,6 +15,7 @@ class Settings(BaseModel):
     # jwt
     version: int = 1
     key: str = os.getenv("KEY")
+    admin: str = os.getenv("ADMIN")
     # s3
     s3_endpoint_url: str = "https://s3.twcstorage.ru"
     s3_region_name: str = "ru-1"

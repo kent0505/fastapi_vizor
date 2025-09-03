@@ -13,12 +13,7 @@ router = APIRouter()
 
 @router.get("/cities")
 async def get_cities(db: SessionDep):
-    cities = (await db.scalars(
-        select(City)
-        .order_by(
-            City.position.desc(), 
-            City.id.asc(),
-        ),)).all()
+    cities = (await db.scalars(select(City).order_by(City.position.desc(), City.id.asc()))).all()
 
     return {"cities": cities}
 
@@ -27,8 +22,7 @@ async def get_restaurants(
     city: int,
     db: SessionDep,
 ):
-    restaurants = (await db.scalars(
-        select(Restaurant)
+    restaurants = (await db.scalars(select(Restaurant)
         .filter_by(
             city=city, 
             status=RestaurantStatus.active.value,
@@ -70,7 +64,7 @@ async def get_hotspots(
 
 @router.get("/categories")
 async def get_categories(db: SessionDep):
-    categories = (await db.scalars(select(Category))).all()
+    categories = (await db.scalars(select(Category).order_by(Category.position.desc(), Category.id.asc()))).all()
 
     return {"categories": categories}
 

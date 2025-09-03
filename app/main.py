@@ -29,21 +29,22 @@ async def lifespan(_: FastAPI):
     await engine.dispose()
 
 app = FastAPI(
-    title="Vizor",
     lifespan=lifespan,
+    title="Vizor",
+    description=settings.admin,
     swagger_ui_parameters=settings.swagger,
 )
 
 app.add_middleware(
-    CORSMiddleware, 
-    allow_origins=["*"], 
-    allow_methods=["*"], 
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
 app.mount(
     path="/static",
-    app=StaticFiles(directory="static"), 
+    app=StaticFiles(directory="static"),
     name="static",
 )
 
@@ -70,9 +71,17 @@ if __name__ == "__main__":
         reload=True,
     )
 
-# python main.py
-# uvicorn main:app --reload
 # pip install -r requirements.txt
+
+# DOCKER
+# docker-compose up -d
+# docker build -t fastapi .
+# docker run -p 8000:8000 fastapi
+
+# ALEMBIC
+# alembic init migrations
+# alembic revision --autogenerate -m "xyz"
+# alembic upgrade head
 
 # WINDOWS
 # python -m venv venv
@@ -82,13 +91,3 @@ if __name__ == "__main__":
 # python3 -m venv venv
 # source venv/bin/activate
 # lsof -t -i tcp:8000 | xargs kill -9
-
-# DOCKER
-# docker-compose up -d
-# docker build -t fastapi .
-# docker run -p 8000:8000 fastapi
-
-# ALEMBIC
-# alembic init migrations
-# alembic revision --autogenerate -m "init schema"
-# alembic upgrade head

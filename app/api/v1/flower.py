@@ -15,8 +15,14 @@ async def add_flower(
     flower = Flower(
         title=body.title,
         price=body.price,
+        currency=body.currency,
     )
     db.add(flower)
+    await db.commit()
+    await db.refresh(flower)
+
+    flower.photo = f"flowers/{flower.id}.jpg"
+
     await db.commit()
 
     return {"message": "flower added"}
@@ -33,6 +39,7 @@ async def edit_flower(
 
     flower.title = body.title
     flower.price = body.price
+    flower.currency = body.currency
     await db.commit()
 
     return {"message": "flower updated"}
