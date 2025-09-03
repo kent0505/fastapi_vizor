@@ -17,7 +17,7 @@ from db.flower_order import FlowerOrder
 
 config = context.config
 
-sync_url = settings.db_url.replace("+asyncpg", "")
+sync_url = settings.db_url.replace("+asyncpg", "").replace("db", "localhost")
 config.set_main_option("sqlalchemy.url", sync_url)
 
 if config.config_file_name is not None:
