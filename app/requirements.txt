@@ -16,3 +16,4 @@ greenlet
 faststream[rabbit]
 alembic
 psycopg2-binary
+pydantic-settings

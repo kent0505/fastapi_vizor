@@ -3,7 +3,7 @@ from faststream.rabbit.fastapi import RabbitRouter
 from pydantic import BaseModel
 from enum import Enum
 from core.config import settings
-from db import db_helper, select
+from db import async_session, select
 from db.user import User
 
 class Queue(str, Enum):
@@ -13,9 +13,9 @@ class Queue(str, Enum):
 class ContactSchema(BaseModel):
     phone: str
 
-broker = RabbitBroker(url=settings.rabbit_url)
+broker = RabbitBroker(url=settings.rabbit.url)
 
-router = RabbitRouter(url=settings.rabbit_url)
+router = RabbitRouter(url=settings.rabbit.url)
 
 @router.post("/contact")
 async def test(contact: ContactSchema):
@@ -29,7 +29,7 @@ async def test(contact: ContactSchema):
 async def handle_contacts(data: str):
     contact = ContactSchema.model_validate_json(data)
 
-    async with db_helper.get_session() as db:
+    async with async_session() as db:
         user = await db.scalar(select(User).filter_by(phone=contact.phone))
         if user:
             user.phone = contact.phone

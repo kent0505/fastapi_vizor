@@ -72,7 +72,7 @@ async def login(
     access_token: str = signJWT(
         user.id, 
         user.role, 
-        get_timestamp() + settings.year_seconds,
+        get_timestamp() + settings.jwt.exp,
     )
 
     return {

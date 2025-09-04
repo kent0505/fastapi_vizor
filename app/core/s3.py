@@ -8,14 +8,14 @@ class S3Service:
     def __init__(self):
         self.s3: S3Client = boto3.client(
             "s3",
-            endpoint_url=settings.s3_endpoint_url,
-            aws_access_key_id=settings.s3_access_key,
-            aws_secret_access_key=settings.s3_secret_key,
-            region_name=settings.s3_region_name,
+            endpoint_url=settings.s3.endpoint_url,
+            aws_access_key_id=settings.s3.access_key,
+            aws_secret_access_key=settings.s3.secret_key,
+            region_name=settings.s3.region_name,
         )
-        self.bucket = settings.s3_bucket
-        self.allowed_formats = settings.image_formats
-    
+        self.bucket = settings.s3.bucket
+        self.allowed_formats = ['png', 'jpg', 'jpeg']
+
     async def put_object(
         self, 
         name: str, 

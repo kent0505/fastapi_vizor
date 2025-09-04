@@ -5,19 +5,7 @@ from contextlib import asynccontextmanager
 from core.config import settings
 from db import engine
 from home import router as home_router
-from api.v1.auth import router as auth_router
-from api.v1.client import router as client_router
-from api.v1.user import router as user_router
-from api.v1.admin import router as admin_router
-from api.v1.city import router as city_router
-from api.v1.restaurant import router as restaurant_router
-from api.v1.panorama import router as panorama_router
-from api.v1.table import router as table_router
-from api.v1.hotspot import router as hotspot_router
-from api.v1.category import router as category_router
-from api.v1.menu import router as menu_router
-from api.v1.flower import router as flower_router
-from api.v1.flower_order import router as flower_order_router
+from api.v1 import router as v1_router
 
 import uvicorn
 import logging
@@ -31,8 +19,8 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     lifespan=lifespan,
     title="Vizor",
-    description=settings.admin,
-    swagger_ui_parameters=settings.swagger,
+    description=settings.jwt.admin,
+    swagger_ui_parameters=settings.swagger.ui_parameters,
 )
 
 app.add_middleware(
@@ -49,19 +37,7 @@ app.mount(
 )
 
 app.include_router(home_router, include_in_schema=False)
-app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
-app.include_router(client_router, prefix="/api/v1/client", tags=["Client"])
-app.include_router(user_router, prefix="/api/v1/user", tags=["User"])
-app.include_router(admin_router, prefix="/api/v1/admin", tags=["Admin"])
-app.include_router(city_router, prefix="/api/v1/city", tags=["City"])
-app.include_router(restaurant_router, prefix="/api/v1/restaurant", tags=["Restaurant"])
-app.include_router(panorama_router, prefix="/api/v1/panorama", tags=["Panorama"])
-app.include_router(table_router, prefix="/api/v1/table", tags=["Table"])
-app.include_router(hotspot_router, prefix="/api/v1/hotspot", tags=["Hotspot"])
-app.include_router(category_router, prefix="/api/v1/category", tags=["Category"])
-app.include_router(menu_router, prefix="/api/v1/menu", tags=["Menu"])
-app.include_router(flower_router, prefix="/api/v1/flower", tags=["Flower"])
-app.include_router(flower_order_router, prefix="/api/v1/flower_order", tags=["Flower Order"])
+app.include_router(v1_router)
 
 if __name__ == "__main__":
     uvicorn.run(

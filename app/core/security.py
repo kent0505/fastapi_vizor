@@ -22,10 +22,10 @@ def signJWT(
             "id": id,
             "role": role,
             "exp": exp,
-            "version": settings.version,
+            "version": settings.jwt.version,
         },
-        key=settings.key,
-        algorithm="HS256",
+        key=settings.jwt.key,
+        algorithm=settings.jwt.algorithm,
     )
 
 class JWTBearer(HTTPBearer):
@@ -45,8 +45,8 @@ class JWTBearer(HTTPBearer):
         try:
             payload: dict = jwt.decode(
                 jwt=token.credentials,
-                key=settings.key,
-                algorithms=["HS256"],
+                key=settings.jwt.key,
+                algorithms=[settings.jwt.algorithm],
             )
         except ExpiredSignatureError:
             raise HTTPException(403, "token has expired")
@@ -63,7 +63,7 @@ class JWTBearer(HTTPBearer):
         if payload.get("role") not in allowed_roles:
             raise HTTPException(403, "access denied for this role")
 
-        if payload.get("version") != settings.version:
+        if payload.get("version") != settings.jwt.version:
             raise HTTPException(403, "token version mismatch")
 
         return payload.get("id")

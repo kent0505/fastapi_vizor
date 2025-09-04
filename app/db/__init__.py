@@ -14,10 +14,7 @@ class Base(DeclarativeBase):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-engine = create_async_engine(
-    # url="sqlite+aiosqlite:///sqlite.db",
-    url=settings.db_url,
-)
+engine = create_async_engine(url=settings.db.url)
 
 async_session = async_sessionmaker(
     bind=engine,

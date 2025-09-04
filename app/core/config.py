@@ -1,33 +1,44 @@
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from pydantic_settings import BaseSettings
 
 import os
 
 load_dotenv()
 
-class Settings(BaseModel):
-    swagger: dict = {"defaultModelsExpandDepth": -1}
+class Swagger(BaseModel):
+    ui_parameters: dict = {"defaultModelsExpandDepth": -1}
 
-    image_formats: list[str] = ['png', 'jpg', 'jpeg']
-    day_seconds: int = 86400
-    year_seconds: int = 31536000
-
-    # jwt
+class JWT(BaseModel):
     version: int = 1
+    exp: int = 31536000 # one year
     key: str = os.getenv("KEY")
+    algorithm: str = "HS256"
     admin: str = os.getenv("ADMIN")
-    # s3
-    s3_endpoint_url: str = "https://s3.twcstorage.ru"
-    s3_region_name: str = "ru-1"
-    s3_access_key: str = os.getenv("S3_ACCESS_KEY")
-    s3_secret_key: str = os.getenv("S3_SECRET_KEY")
-    s3_bucket: str = os.getenv("S3_BUCKET")
-    # db
-    db_url: str = os.getenv("POSTGRES_URL")
-    # twilio
+
+class S3(BaseModel):
+    endpoint_url: str = os.getenv("S3_URL")
+    region_name: str = os.getenv("S3_REGION")
+    access_key: str = os.getenv("S3_ACCESS_KEY")
+    secret_key: str = os.getenv("S3_SECRET_KEY")
+    bucket: str = os.getenv("S3_BUCKET")
+
+class DB(BaseModel):
+    url: str = os.getenv("POSTGRES_URL") # "sqlite+aiosqlite:///sqlite.db"
+
+class Rabbit(BaseModel):
+    url: str = os.getenv("RABBIT_URL")
+
+class Twilio(BaseModel):
     account_sid: str = os.getenv("ACCOUNT_SID")
     auth_token: str = os.getenv("AUTH_TOKEN")
-    # broker
-    rabbit_url: str = os.getenv("RABBIT_URL")
+
+class Settings(BaseSettings):
+    swagger: Swagger = Swagger()
+    jwt: JWT = JWT()
+    s3: S3 = S3()
+    db: DB = DB()
+    rabbit: Rabbit = Rabbit()
+    twilio: Twilio = Twilio()
 
 settings = Settings()

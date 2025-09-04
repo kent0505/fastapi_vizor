@@ -7,8 +7,8 @@ import logging
 class SmsService:
     def __init__(self):
         self.client = Client(
-            settings.account_sid,
-            settings.auth_token,
+            settings.twilio.account_sid,
+            settings.twilio.auth_token,
         )
 
     async def send_sms(
