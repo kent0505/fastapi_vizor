@@ -26,11 +26,6 @@ async def add_restaurant(
         city=body.city,
     )
     db.add(restaurant)
-
-    await db.commit()
-    await db.refresh(restaurant)
-
-    restaurant.photo = f"restaurants/{restaurant.id}.jpg"
     await db.commit()
 
     return {"message": "restaurant added"}

@@ -31,7 +31,7 @@ async def add_table(
 
     return {"message": "table added"}
 
-@router.patch("/")
+@router.patch("/status")
 async def edit_table_status(
     id: int,
     status: TableStatus,

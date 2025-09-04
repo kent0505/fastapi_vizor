@@ -16,7 +16,7 @@ class Restaurant(Base):
     city: Mapped[int] = mapped_column() # city id
     position: Mapped[int] = mapped_column(default=0)
     status: Mapped[str] = mapped_column(default=RestaurantStatus.active.value)
-    photo: Mapped[str] = mapped_column()
+    photo: Mapped[str] = mapped_column(nullable=True)
 
 class RestaurantSchema(BaseModel):
     title: str

@@ -19,11 +19,6 @@ async def add_flower(
     )
     db.add(flower)
     await db.commit()
-    await db.refresh(flower)
-
-    flower.photo = f"flowers/{flower.id}.jpg"
-
-    await db.commit()
 
     return {"message": "flower added"}
 

@@ -32,10 +32,6 @@ async def add_menu(
     )
     db.add(menu)
     await db.commit()
-    await db.refresh(menu)
-
-    menu.photo = f"menus/{menu.id}.jpg"
-    await db.commit()
 
     return {"message": "menu added"}
 
@@ -67,7 +63,7 @@ async def edit_menu(
 
     return {"message": "menu updated"}
 
-@router.patch("/")
+@router.patch("/photo")
 async def edit_menu_photo(
     id: int, 
     db: SessionDep,
