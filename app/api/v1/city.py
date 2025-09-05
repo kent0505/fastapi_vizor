@@ -10,6 +10,10 @@ async def add_city(
     body: CitySchema, 
     db: SessionDep,
 ):
+    city = await db.scalar(select(City).filter_by(name=body.name))
+    if city:
+        raise HTTPException(409, "city already exists")
+
     city = City(name=body.name)
     db.add(city)
     await db.commit()

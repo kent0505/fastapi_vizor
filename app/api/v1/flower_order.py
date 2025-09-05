@@ -1,9 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer, Roles, UserDep
-from core.utils import get_timestamp
 from db import SessionDep, select
 from db.flower import Flower
-from db.flower_order import FlowerOrder, FlowerOrderSchema
+from db.flower_order import FlowerOrder, FlowerOrderSchema, FlowerOrderStatus
 
 router = APIRouter(dependencies=[Depends(JWTBearer(role=Roles.user))])
 
@@ -32,7 +31,6 @@ async def add_flower_order(
         lat=body.lat,
         lon=body.lon,
         note=body.note,
-        date=get_timestamp(),
     )
     db.add(order)
     await db.commit()
@@ -47,6 +45,9 @@ async def cancel_flower_order(
     order = await db.scalar(select(FlowerOrder).filter_by(id=id))
     if not order:
         raise HTTPException(404, "flower order not found")
+
+    if order.status != FlowerOrderStatus.active.value:
+        raise HTTPException(409, "flower order cannot be cancelled because it is already being processed")
 
     await db.delete(order)
     await db.commit()

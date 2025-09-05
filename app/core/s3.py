@@ -1,8 +1,10 @@
 from fastapi import UploadFile, HTTPException
 from mypy_boto3_s3 import S3Client
 from core.config import settings
+from core.utils import get_timestamp
 
 import boto3
+import logging
 
 class S3Service:
     def __init__(self):
@@ -18,15 +20,17 @@ class S3Service:
 
     async def put_object(
         self, 
-        name: str, 
+        id: int,
+        folder: str,
         file: UploadFile,
-    ) -> str:
+    ) -> str | None:
         try:
             ext = file.filename.split(".")[-1].lower()
             if ext not in self.allowed_formats:
                 raise HTTPException(400, "unsupported file format")
 
-            key = f"{name}.{ext}"
+            key = f"{folder}/{id}_{get_timestamp()}.{ext}"
+
             body = await file.read()
 
             self.s3.put_object(
@@ -37,7 +41,8 @@ class S3Service:
             )
             return key
         except Exception as e:
-            raise HTTPException(500, str(e))
+            logging.error(e)
+            return None
 
     async def delete_object(
         self, 
@@ -49,6 +54,6 @@ class S3Service:
                 Key=key,
             )
         except Exception as e:
-            raise HTTPException(500, str(e))
+            logging.error(e)
 
 s3_service = S3Service()

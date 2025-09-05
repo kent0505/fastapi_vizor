@@ -95,9 +95,7 @@ async def edit_restaurant_photo(
     if not restaurant:
         raise HTTPException(404, "restaurant not found")
 
-    key = f"restaurants/{id}"
-
-    photo = await s3_service.put_object(key, file)
+    photo = await s3_service.put_object(id, "restaurants", file)
 
     restaurant.photo = photo
     await db.commit()

@@ -49,9 +49,7 @@ async def edit_flower_photo(
     if not flower:
         raise HTTPException(404, "flower not found")
 
-    key = f"flowers/{id}"
-
-    photo = await s3_service.put_object(key, file)
+    photo = await s3_service.put_object(id, "flowers", file)
 
     flower.photo = photo
     await db.commit()
@@ -86,6 +84,8 @@ async def delete_flower(
     flower = await db.scalar(select(Flower).filter_by(id=id))
     if not flower:
         raise HTTPException(404, "flower not found")
+
+    await s3_service.delete_object(flower.photo)
 
     await db.delete(flower)
     await db.commit()

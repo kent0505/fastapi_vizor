@@ -22,9 +22,7 @@ async def add_panorama(
     await db.commit()
     await db.refresh(panorama)
 
-    key = f"panoramas/{panorama.id}"
-
-    photo = await s3_service.put_object(key, file)
+    photo = await s3_service.put_object(panorama.id, "panoramas", file)
 
     panorama.photo = photo
     await db.commit()
@@ -41,9 +39,7 @@ async def edit_panorama_photo(
     if not panorama:
         raise HTTPException(404, "panorama not found")
 
-    key = f"panoramas/{id}"
-
-    photo = await s3_service.put_object(key, file)
+    photo = await s3_service.put_object(id, "panoramas", file)
 
     panorama.photo = photo
     await db.commit()

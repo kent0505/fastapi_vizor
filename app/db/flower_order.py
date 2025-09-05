@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from enum import Enum
+from core.utils import get_timestamp
 from db import Base, Mapped, mapped_column
 
 class FlowerOrderStatus(str, Enum):
@@ -13,7 +14,7 @@ class FlowerOrder(Base):
     fid: Mapped[int] = mapped_column() # flower id
     lat: Mapped[str] = mapped_column()
     lon: Mapped[str] = mapped_column()
-    date: Mapped[int] = mapped_column() # timestamp
+    date: Mapped[int] = mapped_column(default=get_timestamp())
     note: Mapped[str] = mapped_column()
     message: Mapped[str] = mapped_column()
     status: Mapped[str] = mapped_column(default=FlowerOrderStatus.active.value) # active, process, done, cancel

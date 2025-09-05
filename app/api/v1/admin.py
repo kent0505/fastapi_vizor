@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from core.security import JWTBearer
-from core.security import Roles, UserDep
+from core.security import Roles
+from core.s3 import s3_service
 from db import SessionDep, select
 from db.user import User, UserSchema
 
@@ -57,15 +58,13 @@ async def edit_admin(
 @router.delete("/")
 async def delete_admin(
     id: int,
-    admin: UserDep,
     db: SessionDep,
 ):
     user = await db.scalar(select(User).filter_by(id=id))
     if not user:
         raise HTTPException(404, "user not found")
     
-    if id == admin:
-        raise HTTPException(403, "admin can't delete itself")
+    await s3_service.delete_object(user.photo)
 
     await db.delete(user)
     await db.commit()

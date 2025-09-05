@@ -73,9 +73,7 @@ async def edit_menu_photo(
     if not menu:
         raise HTTPException(404, "menu not found")
 
-    key = f"menus/{id}"
-
-    photo =  await s3_service.put_object(key, file)
+    photo =  await s3_service.put_object(id, "menus", file)
 
     menu.photo = photo
     await db.commit()
@@ -91,8 +89,7 @@ async def delete_menu(
     if not menu:
         raise HTTPException(404, "menu not found")
 
-    key = f"menus/{menu.id}"
-    await s3_service.delete_object(key)
+    await s3_service.delete_object(menu.photo)
 
     await db.delete(menu)
     await db.commit()

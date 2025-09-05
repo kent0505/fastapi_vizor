@@ -54,9 +54,7 @@ async def edit_user_photo(
     if not user:
         raise HTTPException(404, "user not found")
 
-    key = f"users/{id}"
-
-    photo = await s3_service.put_object(key, file)
+    photo = await s3_service.put_object(id, "users", file)
 
     user.photo = photo
     await db.commit()
